@@ -15,6 +15,17 @@
             class="org.palladiosimulator.wlcgmodel.wizards.SampleNewWizard"
             id="org.palladiosimulator.wlcgmodel.wizards.SampleNewWizard">
       </wizard>
+      <category
+            id="org.palladiosimulator.wlcgmodel.wlcg"
+            name="WLCG Simulation Model">
+      </category>
+      <wizard
+            category="org.palladiosimulator.wlcgmodel.wlcg"
+            class="org.palladiosimulator.wlcgmodel.wizards.NewWLCGModelWizard"
+            icon="icons/sample.png"
+            id="org.palladiosimulator.wlcgmodel.wizards.NewWLCGModelWizard"
+            name="Calibrated WLCG Model">
+      </wizard>
    </extension>
 
 </plugin>
