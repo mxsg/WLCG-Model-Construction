@@ -1,0 +1,7 @@
+# Eclipse specific ignores
+bin/
+tmp/
+.settings/
+
+# Locally stored "Eclipse launch configurations"
+*.launch
