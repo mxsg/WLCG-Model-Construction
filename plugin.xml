@@ -20,7 +20,7 @@
             name="WLCG Simulation Model">
       </category>
       <wizard
-            category="org.palladiosimulator.wlcgmodel.wlcg"
+            category="org.palladiosimulator.pcmbench.palladio_modeling_category"
             class="org.palladiosimulator.wlcgmodel.wizards.NewWLCGModelWizard"
             icon="icons/sample.png"
             id="org.palladiosimulator.wlcgmodel.wizards.NewWLCGModelWizard"
