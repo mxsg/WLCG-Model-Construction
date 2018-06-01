@@ -49,9 +49,9 @@ import org.eclipse.ui.actions.WorkspaceModifyOperation;
 import org.eclipse.ui.dialogs.WizardNewProjectCreationPage;
 import org.eclipse.ui.wizards.newresource.BasicNewProjectResourceWizard;
 import org.palladiosimulator.architecturaltemplates.AT;
-import org.palladiosimulator.architecturaltemplates.api.ArchitecturalTemplateAPI;
 import org.palladiosimulator.commons.eclipseutils.FileHelper;
 import org.palladiosimulator.editors.sirius.custom.util.SiriusCustomUtil;
+import org.palladiosimulator.wlcgmodel.PCMModelImporter;
 
 /**
  * A wizard to create a new palladio model according to a chosen template.
@@ -197,6 +197,11 @@ public class NewWLCGModelWizard extends Wizard implements INewWizard {
 //            handleTemplate(projectHandle, SubMonitor.convert(monitor, "Initializing based on AT", 2000));
             copyModelsToProject(computeBlueprintPath(), projectHandle, SubMonitor.convert(monitor, "Creating model files", 2000));
             
+            
+            // Try loading and writing models
+            PCMModelImporter importer = new PCMModelImporter();
+            importer.completeAndImportModels(computeBlueprintPath());
+            
             convertToModelingProject(projectHandle,
                     SubMonitor.convert(monitor, "Converting to Modeling Project", 2000));
             activateViewpoints(projectHandle, SubMonitor.convert(monitor, "Activating Viewpoints", 2000));
@@ -231,7 +236,7 @@ public class NewWLCGModelWizard extends Wizard implements INewWizard {
     
     private void copyModelsToProject(final URI path, final IContainer target, final SubMonitor subMonitor) throws CoreException {
     	addToProject(path, target, subMonitor);
-    }
+    }    
 
     private void addToProject(final URI path, final IContainer target, final SubMonitor subMonitor)
             throws CoreException {
