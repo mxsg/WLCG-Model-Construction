@@ -60,8 +60,17 @@ public class NewWLCGModelWizard extends Wizard implements INewWizard {
 
     /** An AT catalog stores initiator templates in this folder. */
     private static final String INITIATOR_TEMPLATES_FOLDER = "initiatorTemplates";
-
+    
 	private static final String PERSPECTIVE_ID = "org.palladiosimulator.pcmbench.perspectives.palladio";
+	
+    private static final String MODEL_BLUEPRINTS_FOLDER = "platform:/plugin/org.palladiosimulator.wlcgmodel/blueprints";
+    private static final String[] MODEL_BLUEPRINT_NAMES = {"exp.experiments",
+                                                           "jobs.repository",
+                                                           "jobs.system",
+                                                           "node.allocation",
+                                                           "node.ressourceenvironment",
+                                                           "wlcg.usagemodel"};
+    private static final String MODEL_PARAMETER_FOLDER = "platform:/plugin/org.palladiosimulator.wlcgmodel/parameters";
 
     private WizardNewProjectCreationPage projectCreationPage;
 //    private NewPalladioTemplateWizardPage palladioTemplatePage;
@@ -186,6 +195,8 @@ public class NewWLCGModelWizard extends Wizard implements INewWizard {
             monitor.beginTask("Creating Project", 8000);
             createAndOpenProject(description, projectHandle, SubMonitor.convert(monitor, "Main Task", 2000));
 //            handleTemplate(projectHandle, SubMonitor.convert(monitor, "Initializing based on AT", 2000));
+            copyModelsToProject(computeBlueprintPath(), projectHandle, SubMonitor.convert(monitor, "Creating model files", 2000));
+            
             convertToModelingProject(projectHandle,
                     SubMonitor.convert(monitor, "Converting to Modeling Project", 2000));
             activateViewpoints(projectHandle, SubMonitor.convert(monitor, "Activating Viewpoints", 2000));
@@ -217,6 +228,10 @@ public class NewWLCGModelWizard extends Wizard implements INewWizard {
 //            addToProject(computeTemplatePath(selectedTemplate), projectHandle, subMonitor);
 //        }
 //    }
+    
+    private void copyModelsToProject(final URI path, final IContainer target, final SubMonitor subMonitor) throws CoreException {
+    	addToProject(path, target, subMonitor);
+    }
 
     private void addToProject(final URI path, final IContainer target, final SubMonitor subMonitor)
             throws CoreException {
@@ -262,6 +277,11 @@ public class NewWLCGModelWizard extends Wizard implements INewWizard {
         final String[] segments = URI.createURI(selectedTemplate.getDefaultInstanceURI()).segments();
         return templateFolderURI.appendSegments(segments);
     }
+    
+    private URI computeBlueprintPath() {
+    	return URI.createURI(MODEL_BLUEPRINTS_FOLDER);
+    }
+
 
     /**
      * Root folder of the eObject.
