@@ -1,0 +1,173 @@
+[
+    {
+        "HSScorePerJobSlot": 8.058333333333334,
+        "cores": 24,
+        "count": 115,
+        "cpu model": "AMD Opteron(tm) Processor 6168",
+        "hs06": 193.4,
+        "interconnect": "1G",
+        "jobslots": 24
+    },
+    {
+        "HSScorePerJobSlot": 8.966666666666667,
+        "cores": 48,
+        "count": 2,
+        "cpu model": "AMD Opteron(tm) Processor 6174",
+        "hs06": 430.4,
+        "interconnect": "1G",
+        "jobslots": 48
+    },
+    {
+        "HSScorePerJobSlot": 7.8,
+        "cores": 64,
+        "count": 1,
+        "cpu model": "AMD Opteron(tm) Processor 6376",
+        "hs06": 499.2,
+        "interconnect": "1G",
+        "jobslots": 64
+    },
+    {
+        "HSScorePerJobSlot": 11.0,
+        "cores": 8,
+        "count": 1,
+        "cpu model": "AMD Ryzen 7 1700 Eight-Core Processor",
+        "hs06": 88.0,
+        "interconnect": "1G",
+        "jobslots": 8
+    },
+    {
+        "HSScorePerJobSlot": 10.0,
+        "cores": 8,
+        "count": 1,
+        "cpu model": "AMD Ryzen 7 1700 Eight-Core Processor",
+        "hs06": 160.0,
+        "interconnect": "1G",
+        "jobslots": 16
+    },
+    {
+        "HSScorePerJobSlot": 11.025,
+        "cores": 8,
+        "count": 1,
+        "cpu model": "Intel(R) Xeon(R) CPU           E5630  @ 2.53GHz",
+        "hs06": 132.3,
+        "interconnect": "1G",
+        "jobslots": 12
+    },
+    {
+        "HSScorePerJobSlot": 13.65,
+        "cores": 16,
+        "count": 88,
+        "cpu model": "Intel(R) Xeon(R) CPU E5-2630 v3 @ 2.40GHz",
+        "hs06": 327.6,
+        "interconnect": "1G",
+        "jobslots": 24
+    },
+    {
+        "HSScorePerJobSlot": 11.009375,
+        "cores": 16,
+        "count": 66,
+        "cpu model": "Intel(R) Xeon(R) CPU E5-2630 v3 @ 2.40GHz",
+        "hs06": 352.3,
+        "interconnect": "1G",
+        "jobslots": 32
+    },
+    {
+        "HSScorePerJobSlot": 16.655,
+        "cores": 20,
+        "count": 40,
+        "cpu model": "Intel(R) Xeon(R) CPU E5-2630 v4 @ 2.20GHz",
+        "hs06": 333.1,
+        "interconnect": "10G",
+        "jobslots": 20
+    },
+    {
+        "HSScorePerJobSlot": 12.1875,
+        "cores": 20,
+        "count": 600,
+        "cpu model": "Intel(R) Xeon(R) CPU E5-2630 v4 @ 2.20GHz",
+        "hs06": 390.0,
+        "interconnect": "10G",
+        "jobslots": 32
+    },
+    {
+        "HSScorePerJobSlot": 10.39,
+        "cores": 20,
+        "count": 40,
+        "cpu model": "Intel(R) Xeon(R) CPU E5-2630 v4 @ 2.20GHz",
+        "hs06": 415.6,
+        "interconnect": "10G",
+        "jobslots": 40
+    },
+    {
+        "HSScorePerJobSlot": 18.705000000000002,
+        "cores": 20,
+        "count": 2,
+        "cpu model": "Intel(R) Xeon(R) CPU E5-2660 v3 @ 2.60GHz",
+        "hs06": 374.1,
+        "interconnect": "1G",
+        "jobslots": 20
+    },
+    {
+        "HSScorePerJobSlot": 13.9625,
+        "cores": 20,
+        "count": 2,
+        "cpu model": "Intel(R) Xeon(R) CPU E5-2660 v3 @ 2.60GHz",
+        "hs06": 446.8,
+        "interconnect": "1G",
+        "jobslots": 32
+    },
+    {
+        "HSScorePerJobSlot": 16.3125,
+        "cores": 16,
+        "count": 216,
+        "cpu model": "Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz",
+        "hs06": 261.0,
+        "interconnect": "1G",
+        "jobslots": 16
+    },
+    {
+        "HSScorePerJobSlot": 10.875,
+        "cores": 16,
+        "count": 10,
+        "cpu model": "Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz",
+        "hs06": 261.0,
+        "interconnect": "1G",
+        "jobslots": 24
+    },
+    {
+        "HSScorePerJobSlot": 12.708333333333334,
+        "cores": 16,
+        "count": 6,
+        "cpu model": "Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz",
+        "hs06": 305.0,
+        "interconnect": "1G",
+        "jobslots": 24
+    },
+    {
+        "HSScorePerJobSlot": 13.620833333333332,
+        "cores": 16,
+        "count": 4,
+        "cpu model": "Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz",
+        "hs06": 326.9,
+        "interconnect": "1G",
+        "jobslots": 24
+    },
+    {
+        "HSScorePerJobSlot": 11.779166666666667,
+        "cores": 16,
+        "count": 64,
+        "cpu model": "Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz",
+        "hs06": 282.7,
+        "interconnect": "1G",
+        "jobslots": 24
+    },
+    {
+        "HSScorePerJobSlot": 13.745833333333332,
+        "cores": 16,
+        "count": 34,
+        "cpu model": "Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz",
+        "hs06": 329.9,
+        "interconnect": "1G",
+        "jobslots": 24
+    }
+]
