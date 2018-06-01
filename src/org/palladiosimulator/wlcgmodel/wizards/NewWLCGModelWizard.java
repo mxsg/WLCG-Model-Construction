@@ -90,8 +90,8 @@ public class NewWLCGModelWizard extends Wizard implements INewWizard {
     public void addPages() {
         // set the basic project page
         this.projectCreationPage = new WizardNewProjectCreationPage("NewPalladioProject");
-        this.projectCreationPage.setDescription("Create a new Palladio project.");
-        this.projectCreationPage.setTitle("New Palladio Project");
+        this.projectCreationPage.setDescription("Create a new WLCG Model Project.");
+        this.projectCreationPage.setTitle("New WLCG Modeling Project");
         addPage(this.projectCreationPage);
 
 //        // set the template page
