@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="ASCII"?>
+<allocation:Allocation xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:allocation="http://palladiosimulator.org/PalladioComponentModel/Allocation/5.2" id="_5mc_4Gb_EeiZ7YhGqMXvDQ" entityName="New Allocation">
+  <targetResourceEnvironment_Allocation href="nodes.resourceenvironment#/"/>
+  <system_Allocation href="jobs.system#_N6LpsGb-EeiZ7YhGqMXvDQ"/>
+  <allocationContexts_Allocation id="_E60QEGcAEeiZ7YhGqMXvDQ" entityName="Allocation_computeJobSystemAssembly">
+    <resourceContainer_AllocationContext href="nodes.resourceenvironment#_3TsIgGb-EeiZ7YhGqMXvDQ"/>
+    <assemblyContext_AllocationContext href="jobs.system#_ZbQgMGb-EeiZ7YhGqMXvDQ"/>
+  </allocationContexts_Allocation>
+</allocation:Allocation>
