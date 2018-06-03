@@ -3271,8 +3271,8 @@
       </data>
     </ownedAnnotationEntries>
     <ownedDiagramElements xmi:type="diagram:DNodeContainer" xmi:id="_3TtWoGb-EeiZ7YhGqMXvDQ" name="&lt;&lt;ResourceContainer>>&#xA;blueprintNode" tooltipText="ResourceContainer" height="10">
-      <target xmi:type="resourceenvironment:ResourceContainer" href="nodes.resourceenvironment#_3TsIgGb-EeiZ7YhGqMXvDQ"/>
-      <semanticElements xmi:type="resourceenvironment:ResourceContainer" href="nodes.resourceenvironment#_3TsIgGb-EeiZ7YhGqMXvDQ"/>
+      <target xmi:type="resourceenvironment:ResourceContainer" href="nodes.resourceenvironment#WLCGBlueprint_blueprintNode"/>
+      <semanticElements xmi:type="resourceenvironment:ResourceContainer" href="nodes.resourceenvironment#WLCGBlueprint_blueprintNode"/>
       <ownedStyle xmi:type="diagram:FlatContainerStyle" xmi:id="_3TtWoWb-EeiZ7YhGqMXvDQ" borderSize="1" borderSizeComputationExpression="1" foregroundColor="255,255,255">
         <description xmi:type="style:FlatContainerStyleDescription" href="platform:/plugin/org.palladiosimulator.editors.sirius.resourceenvironment/description/resourceenvironment.odesign#//@ownedViewpoints[name='ResourceEnvironment']/@ownedRepresentations[name='ResourceEnvironment%20Diagram']/@defaultLayer/@containerMappings[name='ResourceContainer']/@style"/>
       </ownedStyle>
@@ -3620,8 +3620,8 @@
       </data>
     </ownedAnnotationEntries>
     <ownedDiagramElements xmi:type="diagram:DNodeContainer" xmi:id="_B7L2MGcAEeiZ7YhGqMXvDQ" name="&lt;&lt;ResourceContainer>>&#xA;blueprintNode" tooltipText="ResourceContainer from the specified ResourceEnviroment ">
-      <target xmi:type="resourceenvironment:ResourceContainer" href="nodes.resourceenvironment#_3TsIgGb-EeiZ7YhGqMXvDQ"/>
-      <semanticElements xmi:type="resourceenvironment:ResourceContainer" href="nodes.resourceenvironment#_3TsIgGb-EeiZ7YhGqMXvDQ"/>
+      <target xmi:type="resourceenvironment:ResourceContainer" href="nodes.resourceenvironment#WLCGBlueprint_blueprintNode"/>
+      <semanticElements xmi:type="resourceenvironment:ResourceContainer" href="nodes.resourceenvironment#WLCGBlueprint_blueprintNode"/>
       <arrangeConstraints>KEEP_LOCATION</arrangeConstraints>
       <arrangeConstraints>KEEP_SIZE</arrangeConstraints>
       <arrangeConstraints>KEEP_RATIO</arrangeConstraints>

@@ -3,7 +3,7 @@
   <targetResourceEnvironment_Allocation href="nodes.resourceenvironment#/"/>
   <system_Allocation href="jobs.system#_N6LpsGb-EeiZ7YhGqMXvDQ"/>
   <allocationContexts_Allocation id="_E60QEGcAEeiZ7YhGqMXvDQ" entityName="Allocation_computeJobSystemAssembly">
-    <resourceContainer_AllocationContext href="nodes.resourceenvironment#_3TsIgGb-EeiZ7YhGqMXvDQ"/>
+    <resourceContainer_AllocationContext href="nodes.resourceenvironment#WLCGBlueprint_blueprintNode"/>
     <assemblyContext_AllocationContext href="jobs.system#_ZbQgMGb-EeiZ7YhGqMXvDQ"/>
   </allocationContexts_Allocation>
 </allocation:Allocation>

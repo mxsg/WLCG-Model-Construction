@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="ASCII"?>
 <resourceenvironment:ResourceEnvironment xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:resourceenvironment="http://palladiosimulator.org/PalladioComponentModel/ResourceEnvironment/5.2" entityName="New ResourceEnvironment">
-  <resourceContainer_ResourceEnvironment id="_3TsIgGb-EeiZ7YhGqMXvDQ" entityName="blueprintNode">
-    <activeResourceSpecifications_ResourceContainer id="_4VMBwGb-EeiZ7YhGqMXvDQ">
+  <resourceContainer_ResourceEnvironment id="WLCGBlueprint_blueprintNode" entityName="blueprintNode">
+    <activeResourceSpecifications_ResourceContainer id="WLCGBlueprint_blueprintCPU">
       <schedulingPolicy href="pathmap://PCM_MODELS/Palladio.resourcetype#ProcessorSharing"/>
       <activeResourceType_ActiveResourceSpecification href="pathmap://PCM_MODELS/Palladio.resourcetype#_oro4gG3fEdy4YaaT-RYrLQ"/>
-      <processingRate_ProcessingResourceSpecification specification="0"/>
+      <processingRate_ProcessingResourceSpecification specification="1"/>
     </activeResourceSpecifications_ResourceContainer>
     <activeResourceSpecifications_ResourceContainer xsi:type="resourceenvironment:HDDProcessingResourceSpecification" id="_FrU8cGb_EeiZ7YhGqMXvDQ">
       <schedulingPolicy href="pathmap://PCM_MODELS/Palladio.resourcetype#FCFS"/>
