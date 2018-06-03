@@ -335,7 +335,7 @@ public class PCMModelImporter {
 
         providedRolesComputeJobAssembly.put(jobTypeName, compositeRole);
 
-        // Create connector between composited component and basic component
+        // Create connector between composite component and basic component
         ProvidedDelegationConnector connector = CompositionFactory.eINSTANCE.createProvidedDelegationConnector();
         connector.setAssemblyContext_ProvidedDelegationConnector(assembly);
         // opProvidedRole is the role associated with the basic compute job
