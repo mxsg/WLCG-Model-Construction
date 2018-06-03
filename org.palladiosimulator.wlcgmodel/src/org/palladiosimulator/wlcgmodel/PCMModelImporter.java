@@ -295,4 +295,42 @@ public class PCMModelImporter {
             return null;
         }
     }
+
+    private <T extends EObject> T copyChangeIds(T object) {
+
+        // TODO This should return a deep copy including all containment references, is
+        // this accurate?
+        // TODO Maybe try this in a smaller setting to check?
+        T result = EcoreUtil.copy(object);
+        EcoreUtil.setID(result, EcoreUtil.generateUUID());
+
+        TreeIterator<EObject> i = object.eAllContents();
+        while (i.hasNext()) {
+            EObject obj = i.next();
+
+            // Reset all IDs for contained objects that have IDs
+            // Todo What is the clean way to do this?
+            try {
+                EcoreUtil.setID(obj, EcoreUtil.generateUUID());
+            } catch (IllegalArgumentException e) {
+                // Object does not have ID, do not reset
+            }
+        }
+        return result;
+    }
+
+    private void changeIds(EObject object) {
+        TreeIterator<EObject> i = object.eAllContents();
+        while (i.hasNext()) {
+            EObject obj = i.next();
+
+            // Reset all IDs for contained objects that have IDs
+            // Todo What is the clean way to do this?
+            try {
+                EcoreUtil.setID(obj, EcoreUtil.generateUUID());
+            } catch (IllegalArgumentException e) {
+                // Object does not have ID, do not reset
+            }
+        }
+    }
 }
