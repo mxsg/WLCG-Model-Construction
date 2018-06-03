@@ -7,7 +7,7 @@
       <steps_Behaviour xsi:type="seff:StopAction" id="_8nx_smb7EeiZ7YhGqMXvDQ" predecessor_AbstractAction="WLCGBlueprint_runBlueprintJobSEFF_internalAction"/>
       <steps_Behaviour xsi:type="seff:InternalAction" id="WLCGBlueprint_runBlueprintJobSEFF_internalAction" entityName="InternalAction1" predecessor_AbstractAction="_8nx_sWb7EeiZ7YhGqMXvDQ" successor_AbstractAction="_8nx_smb7EeiZ7YhGqMXvDQ">
         <resourceDemand_Action>
-          <specification_ParametericResourceDemand specification="DoublePDF[(0.0; 1.0)]"/>
+          <specification_ParametericResourceDemand specification="1.0"/>
           <requiredResource_ParametricResourceDemand href="pathmap://PCM_MODELS/Palladio.resourcetype#_oro4gG3fEdy4YaaT-RYrLQ"/>
         </resourceDemand_Action>
       </steps_Behaviour>

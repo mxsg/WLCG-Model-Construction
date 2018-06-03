@@ -9,6 +9,7 @@
     <semanticResources>nodes.resourceenvironment</semanticResources>
     <semanticResources>wlcg.usagemodel</semanticResources>
     <semanticResources>node.allocation</semanticResources>
+    <semanticResources>newAllocation.allocation</semanticResources>
     <ownedViews xmi:type="viewpoint:DView" xmi:id="_yKJ_sGb6EeiZ7YhGqMXvDQ">
       <viewpoint xmi:type="description:Viewpoint" href="platform:/plugin/org.palladiosimulator.editors.sirius.resourceenvironment/description/resourceenvironment.odesign#//@ownedViewpoints[name='ResourceEnvironment']"/>
       <ownedRepresentationDescriptors xmi:type="viewpoint:DRepresentationDescriptor" xmi:id="_yLqbkGb6EeiZ7YhGqMXvDQ" name="ResourceEnvironment Diagram" repPath="#_yKPfQGb6EeiZ7YhGqMXvDQ">
@@ -101,6 +102,10 @@
       <ownedRepresentationDescriptors xmi:type="viewpoint:DRepresentationDescriptor" xmi:id="_Bw5RxWcAEeiZ7YhGqMXvDQ" name="Site Node Allocation Diagram" repPath="#_BvotgGcAEeiZ7YhGqMXvDQ">
         <description xmi:type="description_1:DiagramDescription" href="platform:/plugin/org.palladiosimulator.editors.sirius.allocation/description/allocation.odesign#//@ownedViewpoints[name='Allocation']/@ownedRepresentations[name='Allocation%20Diagram']"/>
         <target xmi:type="allocation:Allocation" href="node.allocation#_5mc_4Gb_EeiZ7YhGqMXvDQ"/>
+      </ownedRepresentationDescriptors>
+      <ownedRepresentationDescriptors xmi:type="viewpoint:DRepresentationDescriptor" xmi:id="_2ZjEwGdcEeiDV6rXONAjTg" name="new Allocation Diagram" repPath="#_2ZQw4GdcEeiDV6rXONAjTg">
+        <description xmi:type="description_1:DiagramDescription" href="platform:/plugin/org.palladiosimulator.editors.sirius.allocation/description/allocation.odesign#//@ownedViewpoints[name='Allocation']/@ownedRepresentations[name='Allocation%20Diagram']"/>
+        <target xmi:type="allocation:Allocation" href="newAllocation.allocation#_ydrsIGdcEeiDV6rXONAjTg"/>
       </ownedRepresentationDescriptors>
     </ownedViews>
   </viewpoint:DAnalysis>
@@ -3801,7 +3806,7 @@
           <description xmi:type="style:FlatContainerStyleDescription" href="platform:/plugin/org.palladiosimulator.editors.sirius.seff/description/seff.odesign#//@ownedViewpoints[name='Seff']/@ownedRepresentations[name='Seff%20Diagram']/@defaultLayer/@containerMappings[name='InternalAction']/@subContainerMappings[name='ResourceDemand%20Container']/@style"/>
         </ownedStyle>
         <actualMapping xmi:type="description_1:ContainerMapping" href="platform:/plugin/org.palladiosimulator.editors.sirius.seff/description/seff.odesign#//@ownedViewpoints[name='Seff']/@ownedRepresentations[name='Seff%20Diagram']/@defaultLayer/@containerMappings[name='InternalAction']/@subContainerMappings[name='ResourceDemand%20Container']"/>
-        <ownedElements xmi:type="diagram:DNodeListElement" xmi:id="_i1kRLGdDEei8YdKbVBqx1Q" name="DoublePDF[(0.0; 1.0)] &lt;CPU>">
+        <ownedElements xmi:type="diagram:DNodeListElement" xmi:id="_i1kRLGdDEei8YdKbVBqx1Q" name="1.0 &lt;CPU>">
           <target xmi:type="seff_performance:ParametricResourceDemand" href="jobs.repository#//@components__Repository.0/@serviceEffectSpecifications__BasicComponent.0/@steps_Behaviour.2/@resourceDemand_Action.0"/>
           <semanticElements xmi:type="seff_performance:ParametricResourceDemand" href="jobs.repository#//@components__Repository.0/@serviceEffectSpecifications__BasicComponent.0/@steps_Behaviour.2/@resourceDemand_Action.0"/>
           <ownedStyle xmi:type="diagram:Square" xmi:id="_i1kRLWdDEei8YdKbVBqx1Q" labelPosition="node">
@@ -3856,5 +3861,59 @@
     <filterVariableHistory xmi:type="diagram:FilterVariableHistory" xmi:id="_i1kRN2dDEei8YdKbVBqx1Q"/>
     <activatedLayers xmi:type="description_1:Layer" href="platform:/plugin/org.palladiosimulator.editors.sirius.seff/description/seff.odesign#//@ownedViewpoints[name='Seff']/@ownedRepresentations[name='Seff%20Diagram']/@defaultLayer"/>
     <target xmi:type="seff:ResourceDemandingSEFF" href="jobs.repository#WLCGBlueprint_runBlueprintJobSEFF"/>
+  </diagram:DSemanticDiagram>
+  <diagram:DSemanticDiagram xmi:id="_2Zh2oGdcEeiDV6rXONAjTg" name="new Allocation Diagram" uid="_2ZQw4GdcEeiDV6rXONAjTg">
+    <ownedAnnotationEntries xmi:type="description:AnnotationEntry" xmi:id="_2Zh2oWdcEeiDV6rXONAjTg" source="DANNOTATION_CUSTOMIZATION_KEY">
+      <data xmi:type="diagram:ComputedStyleDescriptionRegistry" xmi:id="_2Zh2omdcEeiDV6rXONAjTg"/>
+    </ownedAnnotationEntries>
+    <ownedAnnotationEntries xmi:type="description:AnnotationEntry" xmi:id="_2Zk58GdcEeiDV6rXONAjTg" source="GMF_DIAGRAMS">
+      <data xmi:type="notation:Diagram" xmi:id="_2Zk58WdcEeiDV6rXONAjTg" type="Sirius" element="_2Zh2oGdcEeiDV6rXONAjTg" measurementUnit="Pixel">
+        <children xmi:type="notation:Node" xmi:id="_2kH9EGdcEeiDV6rXONAjTg" type="2002" element="_2ddUYGdcEeiDV6rXONAjTg">
+          <children xmi:type="notation:Node" xmi:id="_2kIkIGdcEeiDV6rXONAjTg" type="5006"/>
+          <children xmi:type="notation:Node" xmi:id="_2kIkIWdcEeiDV6rXONAjTg" type="7001">
+            <children xmi:type="notation:Node" xmi:id="_3oNQQGdcEeiDV6rXONAjTg" type="3008" element="_3oIXwGdcEeiDV6rXONAjTg">
+              <children xmi:type="notation:Node" xmi:id="_3oN3UGdcEeiDV6rXONAjTg" type="5005"/>
+              <children xmi:type="notation:Node" xmi:id="_3oN3UWdcEeiDV6rXONAjTg" type="7002">
+                <styles xmi:type="notation:SortingStyle" xmi:id="_3oN3UmdcEeiDV6rXONAjTg"/>
+                <styles xmi:type="notation:FilteringStyle" xmi:id="_3oN3U2dcEeiDV6rXONAjTg"/>
+              </children>
+              <styles xmi:type="notation:ShapeStyle" xmi:id="_3oNQQWdcEeiDV6rXONAjTg" fontName=".AppleSystemUIFont" fontHeight="8"/>
+              <layoutConstraint xmi:type="notation:Bounds" xmi:id="_3oNQQmdcEeiDV6rXONAjTg" x="87" y="34"/>
+            </children>
+            <styles xmi:type="notation:SortingStyle" xmi:id="_2kIkImdcEeiDV6rXONAjTg"/>
+            <styles xmi:type="notation:FilteringStyle" xmi:id="_2kIkI2dcEeiDV6rXONAjTg"/>
+          </children>
+          <styles xmi:type="notation:ShapeStyle" xmi:id="_2kH9EWdcEeiDV6rXONAjTg" fontName=".AppleSystemUIFont" fontHeight="8"/>
+          <layoutConstraint xmi:type="notation:Bounds" xmi:id="_2kH9EmdcEeiDV6rXONAjTg" x="132" y="168"/>
+        </children>
+        <styles xmi:type="notation:DiagramStyle" xmi:id="_2Zk58mdcEeiDV6rXONAjTg"/>
+      </data>
+    </ownedAnnotationEntries>
+    <ownedDiagramElements xmi:type="diagram:DNodeContainer" xmi:id="_2ddUYGdcEeiDV6rXONAjTg" name="&lt;&lt;ResourceContainer>>&#xA;blueprintNode" tooltipText="ResourceContainer from the specified ResourceEnviroment ">
+      <target xmi:type="resourceenvironment:ResourceContainer" href="nodes.resourceenvironment#WLCGBlueprint_blueprintNode"/>
+      <semanticElements xmi:type="resourceenvironment:ResourceContainer" href="nodes.resourceenvironment#WLCGBlueprint_blueprintNode"/>
+      <arrangeConstraints>KEEP_LOCATION</arrangeConstraints>
+      <arrangeConstraints>KEEP_SIZE</arrangeConstraints>
+      <arrangeConstraints>KEEP_RATIO</arrangeConstraints>
+      <ownedStyle xmi:type="diagram:FlatContainerStyle" xmi:id="_2dd7cGdcEeiDV6rXONAjTg" borderSize="1" borderSizeComputationExpression="1" foregroundColor="255,255,255">
+        <description xmi:type="style:FlatContainerStyleDescription" href="platform:/plugin/org.palladiosimulator.editors.sirius.allocation/description/allocation.odesign#//@ownedViewpoints[name='Allocation']/@ownedRepresentations[name='Allocation%20Diagram']/@defaultLayer/@containerMappings[name='ResourceContainer']/@style"/>
+      </ownedStyle>
+      <actualMapping xmi:type="description_1:ContainerMapping" href="platform:/plugin/org.palladiosimulator.editors.sirius.allocation/description/allocation.odesign#//@ownedViewpoints[name='Allocation']/@ownedRepresentations[name='Allocation%20Diagram']/@defaultLayer/@containerMappings[name='ResourceContainer']"/>
+      <ownedDiagramElements xmi:type="diagram:DNodeContainer" xmi:id="_3oIXwGdcEeiDV6rXONAjTg" name="&lt;&lt;Allocation>>&#xA;Allocation_computeJobSystemAssembly" tooltipText="AllocationContext">
+        <target xmi:type="allocation:AllocationContext" href="newAllocation.allocation#_3oBqEGdcEeiDV6rXONAjTg"/>
+        <semanticElements xmi:type="allocation:AllocationContext" href="newAllocation.allocation#_3oBqEGdcEeiDV6rXONAjTg"/>
+        <arrangeConstraints>KEEP_LOCATION</arrangeConstraints>
+        <arrangeConstraints>KEEP_SIZE</arrangeConstraints>
+        <arrangeConstraints>KEEP_RATIO</arrangeConstraints>
+        <ownedStyle xmi:type="diagram:FlatContainerStyle" xmi:id="_3oI-0GdcEeiDV6rXONAjTg" borderSize="1" borderSizeComputationExpression="1" foregroundColor="255,255,255">
+          <description xmi:type="style:FlatContainerStyleDescription" href="platform:/plugin/org.palladiosimulator.editors.sirius.allocation/description/allocation.odesign#//@ownedViewpoints[name='Allocation']/@ownedRepresentations[name='Allocation%20Diagram']/@defaultLayer/@containerMappings[name='ResourceContainer']/@subContainerMappings[name='Allocation_AssemblyContext']/@style"/>
+        </ownedStyle>
+        <actualMapping xmi:type="description_1:ContainerMapping" href="platform:/plugin/org.palladiosimulator.editors.sirius.allocation/description/allocation.odesign#//@ownedViewpoints[name='Allocation']/@ownedRepresentations[name='Allocation%20Diagram']/@defaultLayer/@containerMappings[name='ResourceContainer']/@subContainerMappings[name='Allocation_AssemblyContext']"/>
+      </ownedDiagramElements>
+    </ownedDiagramElements>
+    <description xmi:type="description_1:DiagramDescription" href="platform:/plugin/org.palladiosimulator.editors.sirius.allocation/description/allocation.odesign#//@ownedViewpoints[name='Allocation']/@ownedRepresentations[name='Allocation%20Diagram']"/>
+    <filterVariableHistory xmi:type="diagram:FilterVariableHistory" xmi:id="_2Zh2pGdcEeiDV6rXONAjTg"/>
+    <activatedLayers xmi:type="description_1:Layer" href="platform:/plugin/org.palladiosimulator.editors.sirius.allocation/description/allocation.odesign#//@ownedViewpoints[name='Allocation']/@ownedRepresentations[name='Allocation%20Diagram']/@defaultLayer"/>
+    <target xmi:type="allocation:Allocation" href="newAllocation.allocation#_ydrsIGdcEeiDV6rXONAjTg"/>
   </diagram:DSemanticDiagram>
 </xmi:XMI>
