@@ -3,7 +3,9 @@ package org.palladiosimulator.wlcgmodel;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 import org.eclipse.emf.common.util.TreeIterator;
@@ -41,6 +43,10 @@ public class PCMModelImporter {
     private static final String BLUEPRINT_JOB_SEFF = "WLCGBlueprint_runBlueprintJobSEFF";
     private static final String BLUEPRINT_JOB_SEFF_INTERNAL_ACTION = "WLCGBlueprint_runBlueprintJobSEFF_internalAction";
     private static final String BLUEPRINT_JOB_SEFF_INTERNAL_CPU_RESOURCE_TYPE = "WLCGBlueprint_runBlueprintJobSEFF_cpu_resourcetype";
+    private static final String COMPUTE_ASSEMBLY_CONTEXT_SYSTEM = "WLCGBlueprint_computeJobAssemblyContextSystem";
+
+    private Map<String, OperationInterface> jobInterfaces = new HashMap<>();
+    private Map<String, OperationProvidedRole> providedRolesComputeJobAssembly = new HashMap<>();
 
     public PCMModelImporter() {
     }
@@ -77,13 +83,42 @@ public class PCMModelImporter {
         }
 
         completeRepositoryModel(repository, jobs);
-        
+
         // Complete system model
-        
-        
+
+        Resource systemResource = resourceSet.getResource(modelsPath.appendSegment("jobs.system"), true);
+        org.palladiosimulator.pcm.system.System system = (org.palladiosimulator.pcm.system.System) systemResource
+                .getContents().get(0);
+
+        List<AssemblyContext> systemAssemblies = system.getAssemblyContexts__ComposedStructure();
+        AssemblyContext computeAssembly = (AssemblyContext) findObjectWithId(systemAssemblies,
+                COMPUTE_ASSEMBLY_CONTEXT_SYSTEM);
+
+        for (JobTypeDescription jobDescription : jobs) {
+            String jobTypeName = jobDescription.getTypeName();
+
+            OperationInterface jobInterface = jobInterfaces.get(jobTypeName);
+            OperationProvidedRole assemblyProvidedRole = providedRolesComputeJobAssembly.get(jobTypeName);
+
+            // Create new system provided role and add to system model
+            OperationProvidedRole role = RepositoryFactory.eINSTANCE.createOperationProvidedRole();
+            role.setEntityName(jobTypeName);
+            role.setProvidedInterface__OperationProvidedRole(jobInterface);
+
+            role.setProvidingEntity_ProvidedRole(system);
+
+            ProvidedDelegationConnector connector = CompositionFactory.eINSTANCE.createProvidedDelegationConnector();
+            connector.setOuterProvidedRole_ProvidedDelegationConnector(role);
+            connector.setInnerProvidedRole_ProvidedDelegationConnector(assemblyProvidedRole);
+            connector.setAssemblyContext_ProvidedDelegationConnector(computeAssembly);
+
+            // Add connector to system model
+            connector.setParentStructure__Connector(system);
+        }
 
         try {
             repositoryResource.save(null);
+            systemResource.save(null);
         } catch (IOException e) {
             System.out.println("Error while saving resources, e: " + e);
         }
@@ -121,7 +156,7 @@ public class PCMModelImporter {
         ServiceEffectSpecification seff = findObjectWithId(
                 blueprintJob.getServiceEffectSpecifications__BasicComponent(), BLUEPRINT_JOB_SEFF);
 
-        // Todo Throw more meaningful exception to catch when calling this and notify
+        // TODO Throw more meaningful exception to catch when calling this and notify
         // user about invalid model
         if (seff == null) {
             throw new IllegalArgumentException("Invalid model blueprint!");
@@ -153,6 +188,9 @@ public class PCMModelImporter {
         // Create the interface with a single signature
         OperationInterface typeInterface = RepositoryFactory.eINSTANCE.createOperationInterface();
         typeInterface.setEntityName("interface_" + jobTypeName);
+
+        // Add the interface to instance variable for later use
+        jobInterfaces.put(jobTypeName, typeInterface);
 
         repository.getInterfaces__Repository().add(typeInterface);
 
@@ -191,6 +229,8 @@ public class PCMModelImporter {
         compositeRole.setProvidedInterface__OperationProvidedRole(typeInterface);
         compositeRole.setEntityName("run_" + jobTypeName);
         computeJob.getProvidedRoles_InterfaceProvidingEntity().add(compositeRole);
+
+        providedRolesComputeJobAssembly.put(jobTypeName, compositeRole);
 
         // Create connector between composited component and basic component
         ProvidedDelegationConnector connector = CompositionFactory.eINSTANCE.createProvidedDelegationConnector();
