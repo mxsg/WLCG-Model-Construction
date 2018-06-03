@@ -63,7 +63,7 @@ public class NewWLCGModelWizard extends Wizard implements INewWizard {
     
 	private static final String PERSPECTIVE_ID = "org.palladiosimulator.pcmbench.perspectives.palladio";
 	
-    private static final String MODEL_BLUEPRINTS_FOLDER = "platform:/plugin/org.palladiosimulator.wlcgmodel/blueprints";
+    private static final String MODEL_BLUEPRINTS_FOLDER = "platform:/plugin/org.palladiosimulator.wlcgmodel/blueprint-wlcg";
     private static final String[] MODEL_BLUEPRINT_NAMES = {"exp.experiments",
                                                            "jobs.repository",
                                                            "jobs.system",
@@ -200,11 +200,16 @@ public class NewWLCGModelWizard extends Wizard implements INewWizard {
             
             // Try loading and writing models
             PCMModelImporter importer = new PCMModelImporter();
-            importer.completeAndImportModels(computeBlueprintPath());
+            
+            // Compute project location
+            URI projectURI = URI.createURI(projectHandle.getFullPath().toString());
+            System.out.println(projectURI);
+            
+            importer.completeModels(projectURI, computeParameterPath());
             
             convertToModelingProject(projectHandle,
                     SubMonitor.convert(monitor, "Converting to Modeling Project", 2000));
-            activateViewpoints(projectHandle, SubMonitor.convert(monitor, "Activating Viewpoints", 2000));
+//            activateViewpoints(projectHandle, SubMonitor.convert(monitor, "Activating Viewpoints", 2000));
         } finally {
             monitor.done();
         }
@@ -285,6 +290,10 @@ public class NewWLCGModelWizard extends Wizard implements INewWizard {
     
     private URI computeBlueprintPath() {
     	return URI.createURI(MODEL_BLUEPRINTS_FOLDER);
+    }
+    
+    private URI computeParameterPath() {
+    	return URI.createURI(MODEL_PARAMETER_FOLDER);
     }
 
 
