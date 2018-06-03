@@ -191,39 +191,19 @@ public class PCMModelImporter {
     	compositeRole.setEntityName("run_" + jobTypeName);
     	computeJob.getProvidedRoles_InterfaceProvidingEntity().add(compositeRole);
     	
+    	// Create connector between composited component and basic component
     	ProvidedDelegationConnector connector = CompositionFactory.eINSTANCE.createProvidedDelegationConnector();
     	connector.setAssemblyContext_ProvidedDelegationConnector(assembly);
     	// opProvidedRole is the role associated with the basic compute job (implementing the interface)
     	connector.setInnerProvidedRole_ProvidedDelegationConnector(opProvidedRole);
     	connector.setOuterProvidedRole_ProvidedDelegationConnector(compositeRole);
-    	
     	connector.setParentStructure__Connector(computeJob);
     	
     	return component;
     }
     
     public ResourceDemandingSEFF buildJobSEFF(ResourceDemandingSEFF blueprintSEFF, String seffName, JobTypeDescription jobType) {
-    	
-//    	ResourceDemandingSEFF newSeff = EcoreUtil.copy(blueprintSEFF);
-//    	
-//    	// Change IDs for the contained elements
-//    	EcoreUtil.setID(newSeff, EcoreUtil.generateUUID());
-//    	
-//    	// Insert correct resource demand into SEFF
-    	
-//    	ProcessingResourceType cpuResource = null;
-//    	
-//    	TreeIterator<EObject> i = blueprintSEFF.eAllContents();
-//    	while(i.hasNext()) {
-//    		EObject obj = i.next();
-//    		if(obj instanceof ProcessingResourceType) {
-//    			cpuResource = (ProcessingResourceType) obj;
-//    		}
-//    	}
-    	
-    	
-    	// Todo Remove this
-    	
+    	    	
     	ResourceDemandingSEFF newSeff = EcoreUtil.copy(blueprintSEFF);
     	EcoreUtil.setID(newSeff, EcoreUtil.generateUUID());
     	    	
@@ -250,70 +230,13 @@ public class PCMModelImporter {
     			cpuDemandVariable = (PCMRandomVariable) obj;
     		}
     	}
-    	    	
-    	cpuDemandVariable.setSpecification(jobType.getCpuDemandStoEx());
-    	
-    	return newSeff;
-    	    	
-//    	// Add a SEFF for the component
-//    	ResourceDemandingSEFF seff = SeffFactory.eINSTANCE.createResourceDemandingSEFF();
-//    	
-//    	AbstractAction startAction = SeffFactory.eINSTANCE.createStartAction();
-//    	AbstractAction stopAction = SeffFactory.eINSTANCE.createStopAction();
-//    	
-//    	InternalAction computeAction = SeffFactory.eINSTANCE.createInternalAction();
-//    	
-//    	ParametricResourceDemand cpuDemand = SeffPerformanceFactory.eINSTANCE.createParametricResourceDemand();
-//    	
-//    	// Set parameters for resource demand
-//    	PCMRandomVariable demandVariable = CoreFactory.eINSTANCE.createPCMRandomVariable();
-//    	demandVariable.setSpecification(jobType.getCpuDemandStoEx());
-//    	
-//    	cpuDemand.setSpecification_ParametericResourceDemand(demandVariable);
-//    	cpuDemand.setRequiredResource_ParametricResourceDemand(cpuResource);
-//    	
-////    	computeAction.setResourceDemandingBehaviour_AbstractAction(value);
-//    	
-////    	computeAction.setResourceDemandingBehaviour_AbstractAction(cpuDemand);
-//    	
-//    	// Construct correct action order
-//    	startAction.setSuccessor_AbstractAction(computeAction);
-//    	computeAction.setPredecessor_AbstractAction(startAction);
-//    	
-//    	computeAction.setSuccessor_AbstractAction(stopAction);
-//    	stopAction.setPredecessor_AbstractAction(computeAction);
-//    	
-////    	cpuDemand.setRequiredResource_ParametricResourceDemand(value);
-    }
-    
-    
-    
-    public void doBuildBasicComponentWithProvidedInterface(Resource res) {
-    	Repository repository = RepositoryFactory.eINSTANCE.createRepository();
-    	repository.setEntityName("Repository containing other elements");
-    	// add root (repository) to resource:
-    	res.getContents().add(repository);
-    	
-    	BasicComponent bc = RepositoryFactory.eINSTANCE.createBasicComponent();
-    	bc.setEntityName("My Basic Component");
-    	repository.getComponents__Repository().add(bc);  //add first class entity
-    	
-    	OperationInterface myInterface = RepositoryFactory.eINSTANCE.createOperationInterface();
-    	myInterface.setEntityName("My Interface");
-    	repository.getInterfaces__Repository().add(myInterface); //add first class entity
-    	
-    	OperationProvidedRole opProvRole = RepositoryFactory.eINSTANCE.createOperationProvidedRole();
-    	opProvRole.setEntityName("Provided Role of Basic Component");
-    	
-    	// set the interface for the role:
-    	opProvRole.setProvidedInterface__OperationProvidedRole(myInterface);
-    	
-    	// set/add the role for basic component:
-    	bc.getProvidedRoles_InterfaceProvidingEntity().add(opProvRole);
-    }	
 
-    
-    
+    	cpuDemandVariable.setSpecification(jobType.getCpuDemandStoEx());
+
+    	return newSeff;
+    }
+
+
     /**
      * Find the object with known ID in the list, return null if there is no such object.
      * 
@@ -328,45 +251,4 @@ public class PCMModelImporter {
     		return null;
     	}
     }
-    
-    
-//    private void addToProject(final URI path, final IContainer target, final SubMonitor subMonitor)
-//            throws CoreException {
-//        for (final File source : FileHelper.getFiles(path.toString())) {
-//            final IPath newTarget = new Path(source.getName());
-//            if (source.isDirectory()) {
-//                addFolderToProject(path, source, target.getFolder(newTarget), subMonitor);
-//            } else {
-//                addFileToProject(source, target.getFile(newTarget), subMonitor);
-//            }
-//        }
-//    }
-
-//    private void addFolderToProject(final URI path, final File source, final IFolder target,
-//            final SubMonitor subMonitor) throws CoreException {
-//        if (!target.exists()) {
-//            target.create(IResource.NONE, true, null);
-//        }
-//
-//        addToProject(path.appendSegment(source.getName()), target, subMonitor);
-//    }
-
-//    private void addFileToProject(final File source, final IFile target, final SubMonitor subMonitor)
-//            throws CoreException {
-//        try (final InputStream contentStream = new FileInputStream(source)) {
-//            if (target.exists()) {
-//                target.setContents(contentStream, true, true, subMonitor);
-//            } else {
-//                target.create(contentStream, true, subMonitor);
-//            }
-//        } catch (final FileNotFoundException e) {
-//            throwCoreException("File " + source.getAbsolutePath() + " does not exist!");
-//        } catch (final IOException e) {
-//            throwCoreException(
-//                    "Cannot create inpht stream on file " + source.getAbsolutePath() + "! " + e.getMessage());
-//        } catch (final CoreException e) {
-//            throwCoreException(e.getMessage());
-//        }
-//    }
-
 }
