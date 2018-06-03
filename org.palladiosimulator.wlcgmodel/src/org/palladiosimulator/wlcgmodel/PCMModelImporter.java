@@ -35,6 +35,10 @@ import org.palladiosimulator.pcm.resourceenvironment.ResourceEnvironment;
 import org.palladiosimulator.pcm.seff.InternalAction;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 import org.palladiosimulator.pcm.seff.ServiceEffectSpecification;
+import org.palladiosimulator.pcm.usagemodel.EntryLevelSystemCall;
+import org.palladiosimulator.pcm.usagemodel.OpenWorkload;
+import org.palladiosimulator.pcm.usagemodel.UsageModel;
+import org.palladiosimulator.pcm.usagemodel.UsageScenario;
 
 public class PCMModelImporter {
 
@@ -57,8 +61,13 @@ public class PCMModelImporter {
     private static final String BLUEPRINT_CPU = "WLCGBlueprint_blueprintCPU";
     private static final String BLUEPRINT_HDD = "WLCGBlueprint_blueprintHDD";
 
+    private static final String BLUEPRINT_USAGE_SCENARIO = "WLCGBlueprint_blueprintUsageScenario";
+    private static final String BLUEPRINT_ENTRY_LEVEL_SYSTEM_CALL = "WLCGBlueprint_blueprintEntryLevelSystemCall";
+
     private Map<String, OperationInterface> jobInterfaces = new HashMap<>();
     private Map<String, OperationProvidedRole> providedRolesComputeJobAssembly = new HashMap<>();
+    private Map<String, OperationProvidedRole> providedRolesSystem = new HashMap<>();
+    private Map<String, OperationSignature> jobSignatures = new HashMap<>();
 
     public PCMModelImporter() {
     }
@@ -117,6 +126,7 @@ public class PCMModelImporter {
             role.setEntityName(jobTypeName);
             role.setProvidedInterface__OperationProvidedRole(jobInterface);
 
+            this.providedRolesSystem.put(jobTypeName, role);
             role.setProvidingEntity_ProvidedRole(system);
 
             ProvidedDelegationConnector connector = CompositionFactory.eINSTANCE.createProvidedDelegationConnector();
@@ -168,10 +178,47 @@ public class PCMModelImporter {
             newNode.setResourceEnvironment_ResourceContainer(resEnv);
         }
 
+        // Complete Usage Model
+
+        Resource usageModelResource = resourceSet.getResource(modelsPath.appendSegment(USAGE_MODEL_FILENAME), true);
+        UsageModel usageModel = (UsageModel) usageModelResource.getContents().get(0);
+
+        List<UsageScenario> usageScenarios = usageModel.getUsageScenario_UsageModel();
+        UsageScenario blueprintUsageScenario = findObjectWithId(usageScenarios, BLUEPRINT_USAGE_SCENARIO);
+
+        for (JobTypeDescription jobType : jobs) {
+            String jobTypeName = jobType.getTypeName();
+
+            UsageScenario newUsageScenario = EcoreUtil.copy(blueprintUsageScenario);
+            newUsageScenario.setEntityName("usage_scenario_" + jobTypeName);
+
+            EObject obj = findObjectWithIdRecursively(newUsageScenario, BLUEPRINT_ENTRY_LEVEL_SYSTEM_CALL);
+            EntryLevelSystemCall systemCall = null;
+            if (obj instanceof EntryLevelSystemCall) {
+                systemCall = (EntryLevelSystemCall) obj;
+            }
+
+            systemCall.setOperationSignature__EntryLevelSystemCall(jobSignatures.get(jobTypeName));
+            systemCall.setProvidedRole_EntryLevelSystemCall(providedRolesSystem.get(jobTypeName));
+
+            OpenWorkload workload = (OpenWorkload) newUsageScenario.getWorkload_UsageScenario();
+            PCMRandomVariable interarrivalTime = workload.getInterArrivalTime_OpenWorkload();
+            interarrivalTime.setSpecification(jobType.getInterarrivalStoEx());
+
+            // Change all IDs in new usage scenario structure
+            this.changeIds(newUsageScenario);
+
+            newUsageScenario.setUsageModel_UsageScenario(usageModel);
+        }
+
+        // Remove blueprint usage scenario from the usage model
+        blueprintUsageScenario.setUsageModel_UsageScenario(null);
+
         try {
             repositoryResource.save(null);
             systemResource.save(null);
             resourceEnvironmentResource.save(null);
+            usageModelResource.save(null);
         } catch (IOException e) {
             System.out.println("Error while saving resources, e: " + e);
         }
@@ -250,6 +297,9 @@ public class PCMModelImporter {
         // Create a signature for the interface
         OperationSignature jobInterfaceSignature = RepositoryFactory.eINSTANCE.createOperationSignature();
         jobInterfaceSignature.setEntityName("run_" + jobTypeName);
+
+        // Store for later use in Usage Model
+        jobSignatures.put(jobTypeName, jobInterfaceSignature);
 
         typeInterface.getSignatures__OperationInterface().add(jobInterfaceSignature);
 
