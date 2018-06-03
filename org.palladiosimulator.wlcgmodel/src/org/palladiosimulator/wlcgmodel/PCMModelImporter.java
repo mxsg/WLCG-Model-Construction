@@ -349,6 +349,33 @@ public class PCMModelImporter {
         }
     }
 
+    /**
+     * Find the object with know ID in all objects contained in the passed object,
+     * null if there is no such object.
+     * 
+     * @param object
+     * @param id
+     * @return
+     */
+    private EObject findObjectWithIdRecursively(EObject object, String id) {
+
+        if (id == null) {
+            return null;
+        }
+
+        TreeIterator<EObject> i = object.eAllContents();
+        while (i.hasNext()) {
+            EObject obj = i.next();
+
+            String objId = EcoreUtil.getID(obj);
+
+            if (id.equals(objId)) {
+                return obj;
+            }
+        }
+        return null;
+    }
+
     private <T extends EObject> T copyChangeIds(T object) {
 
         // TODO This should return a deep copy including all containment references, is
