@@ -4,8 +4,8 @@
     <providedRoles_InterfaceProvidingEntity xsi:type="repository:OperationProvidedRole" id="_8nbaYGb7EeiZ7YhGqMXvDQ" entityName="blueprintBasicProvidedRole" providedInterface__OperationProvidedRole="_oMJpAGb7EeiZ7YhGqMXvDQ"/>
     <serviceEffectSpecifications__BasicComponent xsi:type="seff:ResourceDemandingSEFF" id="WLCGBlueprint_runBlueprintJobSEFF" describedService__SEFF="_pvENQGb7EeiZ7YhGqMXvDQ">
       <steps_Behaviour xsi:type="seff:StartAction" id="_8nx_sWb7EeiZ7YhGqMXvDQ" successor_AbstractAction="WLCGBlueprint_runBlueprintJobSEFF_internalAction"/>
-      <steps_Behaviour xsi:type="seff:StopAction" id="_8nx_smb7EeiZ7YhGqMXvDQ"/>
-      <steps_Behaviour xsi:type="seff:InternalAction" id="WLCGBlueprint_runBlueprintJobSEFF_internalAction" entityName="InternalAction1" predecessor_AbstractAction="_8nx_sWb7EeiZ7YhGqMXvDQ">
+      <steps_Behaviour xsi:type="seff:StopAction" id="_8nx_smb7EeiZ7YhGqMXvDQ" predecessor_AbstractAction="WLCGBlueprint_runBlueprintJobSEFF_internalAction"/>
+      <steps_Behaviour xsi:type="seff:InternalAction" id="WLCGBlueprint_runBlueprintJobSEFF_internalAction" entityName="InternalAction1" predecessor_AbstractAction="_8nx_sWb7EeiZ7YhGqMXvDQ" successor_AbstractAction="_8nx_smb7EeiZ7YhGqMXvDQ">
         <resourceDemand_Action>
           <specification_ParametericResourceDemand specification="DoublePDF[(0.0; 1.0)]"/>
           <requiredResource_ParametricResourceDemand href="pathmap://PCM_MODELS/Palladio.resourcetype#_oro4gG3fEdy4YaaT-RYrLQ"/>
