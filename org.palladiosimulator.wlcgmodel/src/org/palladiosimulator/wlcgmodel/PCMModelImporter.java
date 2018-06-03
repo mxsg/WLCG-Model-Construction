@@ -16,6 +16,7 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.palladiosimulator.commons.eclipseutils.FileHelper;
+import org.palladiosimulator.pcm.core.CoreFactory;
 import org.palladiosimulator.pcm.core.PCMRandomVariable;
 import org.palladiosimulator.pcm.core.composition.AssemblyContext;
 import org.palladiosimulator.pcm.core.composition.CompositionFactory;
@@ -28,6 +29,9 @@ import org.palladiosimulator.pcm.repository.OperationSignature;
 import org.palladiosimulator.pcm.repository.Repository;
 import org.palladiosimulator.pcm.repository.RepositoryComponent;
 import org.palladiosimulator.pcm.repository.RepositoryFactory;
+import org.palladiosimulator.pcm.resourceenvironment.ProcessingResourceSpecification;
+import org.palladiosimulator.pcm.resourceenvironment.ResourceContainer;
+import org.palladiosimulator.pcm.resourceenvironment.ResourceEnvironment;
 import org.palladiosimulator.pcm.seff.InternalAction;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 import org.palladiosimulator.pcm.seff.ServiceEffectSpecification;
@@ -35,6 +39,11 @@ import org.palladiosimulator.pcm.seff.ServiceEffectSpecification;
 public class PCMModelImporter {
 
     private static final String REPO_MODEL_FILENAME = "jobs.repository";
+    private static final String SYSTEM_MODEL_FILENAME = "jobs.system";
+    private static final String RESOURCE_ENVIRONMENT_MODEL_FILENAME = "nodes.resourceenvironment";
+    private static final String ALLOCATION_MODEL_FILENAME = "node.allocation";
+    private static final String USAGE_MODEL_FILENAME = "wlcg.usagemodel";
+
     private static final String NODE_DESCRIPTION_FILENAME = "nodes.json";
     private static final String JOB_DESCRIPTION_FILENAME = "jobs.json";
 
@@ -44,6 +53,9 @@ public class PCMModelImporter {
     private static final String BLUEPRINT_JOB_SEFF_INTERNAL_ACTION = "WLCGBlueprint_runBlueprintJobSEFF_internalAction";
     private static final String BLUEPRINT_JOB_SEFF_INTERNAL_CPU_RESOURCE_TYPE = "WLCGBlueprint_runBlueprintJobSEFF_cpu_resourcetype";
     private static final String COMPUTE_ASSEMBLY_CONTEXT_SYSTEM = "WLCGBlueprint_computeJobAssemblyContextSystem";
+    private static final String BLUEPRINT_NODE = "WLCGBlueprint_blueprintNode";
+    private static final String BLUEPRINT_CPU = "WLCGBlueprint_blueprintCPU";
+    private static final String BLUEPRINT_HDD = "WLCGBlueprint_blueprintHDD";
 
     private Map<String, OperationInterface> jobInterfaces = new HashMap<>();
     private Map<String, OperationProvidedRole> providedRolesComputeJobAssembly = new HashMap<>();
@@ -86,7 +98,7 @@ public class PCMModelImporter {
 
         // Complete system model
 
-        Resource systemResource = resourceSet.getResource(modelsPath.appendSegment("jobs.system"), true);
+        Resource systemResource = resourceSet.getResource(modelsPath.appendSegment(SYSTEM_MODEL_FILENAME), true);
         org.palladiosimulator.pcm.system.System system = (org.palladiosimulator.pcm.system.System) systemResource
                 .getContents().get(0);
 
@@ -116,9 +128,50 @@ public class PCMModelImporter {
             connector.setParentStructure__Connector(system);
         }
 
+        // Complete Resource Environment
+
+        Resource resourceEnvironmentResource = resourceSet
+                .getResource(modelsPath.appendSegment(RESOURCE_ENVIRONMENT_MODEL_FILENAME), true);
+        ResourceEnvironment resEnv = (ResourceEnvironment) resourceEnvironmentResource.getContents().get(0);
+
+        List<ResourceContainer> resourceContainers = resEnv.getResourceContainer_ResourceEnvironment();
+        ResourceContainer blueprintContainer = findObjectWithId(resourceContainers, BLUEPRINT_NODE);
+
+        if (blueprintContainer == null) {
+            throw new IllegalArgumentException("Invalid resource environment model");
+        }
+
+        for (NodeTypeDescription nodeType : nodes) {
+            String nodeTypeName = nodeType.getName();
+
+            ResourceContainer newNode = EcoreUtil.copy(blueprintContainer);
+
+            newNode.setEntityName(nodeTypeName);
+
+            List<ProcessingResourceSpecification> resourceSpecs = newNode
+                    .getActiveResourceSpecifications_ResourceContainer();
+
+            ProcessingResourceSpecification cpuResourceSpec = findObjectWithId(resourceSpecs, BLUEPRINT_CPU);
+
+            // Set CPU properties
+            cpuResourceSpec.setNumberOfReplicas(nodeType.getCores());
+
+            PCMRandomVariable processingRate = CoreFactory.eINSTANCE.createPCMRandomVariable();
+            processingRate.setSpecification(String.valueOf(nodeType.getComputingRate()));
+
+            cpuResourceSpec.setProcessingRate_ProcessingResourceSpecification(processingRate);
+
+            // Do not forget to change all IDs for the copied objects
+            changeIds(newNode);
+
+            // Add new node to resource environment
+            newNode.setResourceEnvironment_ResourceContainer(resEnv);
+        }
+
         try {
             repositoryResource.save(null);
             systemResource.save(null);
+            resourceEnvironmentResource.save(null);
         } catch (IOException e) {
             System.out.println("Error while saving resources, e: " + e);
         }
