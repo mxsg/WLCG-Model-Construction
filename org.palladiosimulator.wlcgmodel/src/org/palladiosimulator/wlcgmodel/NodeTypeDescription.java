@@ -2,20 +2,56 @@ package org.palladiosimulator.wlcgmodel;
 
 public class NodeTypeDescription {
 	
-	private int count = 0;
-	private String nodeName = null;
-	private double computingRate = 0;
-	private int jobSlots = 0;
-	private int coreCount = 0;
+	private String name = null;
+	private double computingRate = 0.0;
+	private int jobslots = 0;
+	private int cores = 0;
+	private int nodeCount = 0;
 	
 	public NodeTypeDescription() {}
 
-	public NodeTypeDescription(int count, String nodeName, double computingRate, int jobSlots, int coreCount) {
-		super();
-		this.count = count;
-		this.nodeName = nodeName;
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public double getComputingRate() {
+		return computingRate;
+	}
+
+	public void setComputingRate(double computingRate) {
 		this.computingRate = computingRate;
-		this.jobSlots = jobSlots;
-		this.coreCount = coreCount;
+	}
+
+	public int getJobslots() {
+		return jobslots;
+	}
+
+	public void setJobslots(int jobslots) {
+		this.jobslots = jobslots;
+	}
+
+	public int getCores() {
+		return cores;
+	}
+
+	public void setCores(int cores) {
+		this.cores = cores;
+	}
+
+	public int getNodeCount() {
+		return nodeCount;
+	}
+
+	public void setNodeCount(int nodeCount) {
+		this.nodeCount = nodeCount;
+	}
+	
+	@Override
+	public String toString() {
+		return "Name: " + name + ", " + cores + " cores," + jobslots + " jobslots,"+ nodeCount + " machines";
 	}
 }
