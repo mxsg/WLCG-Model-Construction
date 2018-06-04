@@ -16,7 +16,7 @@
       <monitorRepository href="monitor/wlcg.monitorrepository#_NUg_4GgGEeiGuOnjOGWMZQ"/>
       <repository href="jobs.repository#_6967YGb6EeiZ7YhGqMXvDQ"/>
       <system href="jobs.system#_N6LpsGb-EeiZ7YhGqMXvDQ"/>
-      <resourceEnvironment href="nodes.resourceenvironment#/"/>
+      <resourceEnvironment href="nodes.resourceenvironment#/0"/>
     </initialModel>
   </experiments>
 </ExperimentAutomation.Experiments:ExperimentRepository>

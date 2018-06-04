@@ -23,7 +23,7 @@
       </ownedRepresentationDescriptors>
       <ownedRepresentationDescriptors xmi:type="viewpoint:DRepresentationDescriptor" xmi:id="_xQ9KBWb-EeiZ7YhGqMXvDQ" name="Site Resource Environment Diagram" repPath="#_xQ44kGb-EeiZ7YhGqMXvDQ">
         <description xmi:type="description_1:DiagramDescription" href="platform:/plugin/org.palladiosimulator.editors.sirius.resourceenvironment/description/resourceenvironment.odesign#//@ownedViewpoints[name='ResourceEnvironment']/@ownedRepresentations[name='ResourceEnvironment%20Diagram']"/>
-        <target xmi:type="resourceenvironment:ResourceEnvironment" href="nodes.resourceenvironment#/"/>
+        <target xmi:type="resourceenvironment:ResourceEnvironment" href="nodes.resourceenvironment#/0"/>
       </ownedRepresentationDescriptors>
     </ownedViews>
     <ownedViews xmi:type="viewpoint:DView" xmi:id="_yPImUGb6EeiZ7YhGqMXvDQ">
@@ -3409,7 +3409,7 @@
     <description xmi:type="description_1:DiagramDescription" href="platform:/plugin/org.palladiosimulator.editors.sirius.resourceenvironment/description/resourceenvironment.odesign#//@ownedViewpoints[name='ResourceEnvironment']/@ownedRepresentations[name='ResourceEnvironment%20Diagram']"/>
     <filterVariableHistory xmi:type="diagram:FilterVariableHistory" xmi:id="_xQ9KBGb-EeiZ7YhGqMXvDQ"/>
     <activatedLayers xmi:type="description_1:Layer" href="platform:/plugin/org.palladiosimulator.editors.sirius.resourceenvironment/description/resourceenvironment.odesign#//@ownedViewpoints[name='ResourceEnvironment']/@ownedRepresentations[name='ResourceEnvironment%20Diagram']/@defaultLayer"/>
-    <target xmi:type="resourceenvironment:ResourceEnvironment" href="nodes.resourceenvironment#/"/>
+    <target xmi:type="resourceenvironment:ResourceEnvironment" href="nodes.resourceenvironment#/0"/>
   </diagram:DSemanticDiagram>
   <diagram:DSemanticDiagram xmi:id="_iR8-oGb_EeiZ7YhGqMXvDQ" name="WLCG Site Usage Model Diagram" uid="_iQu2oGb_EeiZ7YhGqMXvDQ">
     <ownedAnnotationEntries xmi:type="description:AnnotationEntry" xmi:id="_iR8-oWb_EeiZ7YhGqMXvDQ" source="DANNOTATION_CUSTOMIZATION_KEY">

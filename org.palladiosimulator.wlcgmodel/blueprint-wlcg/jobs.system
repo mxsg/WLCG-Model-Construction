@@ -1,12 +1,20 @@
 <?xml version="1.0" encoding="ASCII"?>
-<system:System xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:composition="http://palladiosimulator.org/PalladioComponentModel/Core/Composition/5.2" xmlns:repository="http://palladiosimulator.org/PalladioComponentModel/Repository/5.2" xmlns:system="http://palladiosimulator.org/PalladioComponentModel/System/5.2" id="_N6LpsGb-EeiZ7YhGqMXvDQ" entityName="jobsSystem">
-  <assemblyContexts__ComposedStructure id="WLCGBlueprint_computeJobAssemblyContextSystem" entityName="computeJobSystemAssembly">
-    <encapsulatedComponent__AssemblyContext xsi:type="repository:CompositeComponent" href="jobs.repository#WLCGBlueprint_computeJobCompositeComponent"/>
-  </assemblyContexts__ComposedStructure>
-  <connectors__ComposedStructure xsi:type="composition:ProvidedDelegationConnector" id="_jv0gQGb-EeiZ7YhGqMXvDQ" entityName="newProvidedDelegationConnector" outerProvidedRole_ProvidedDelegationConnector="_TjzkoGb-EeiZ7YhGqMXvDQ" assemblyContext_ProvidedDelegationConnector="WLCGBlueprint_computeJobAssemblyContextSystem">
-    <innerProvidedRole_ProvidedDelegationConnector href="jobs.repository#_ZU5rcGb8EeiZ7YhGqMXvDQ"/>
-  </connectors__ComposedStructure>
-  <providedRoles_InterfaceProvidingEntity xsi:type="repository:OperationProvidedRole" id="_TjzkoGb-EeiZ7YhGqMXvDQ" entityName="blueprintJobSystemProvidedRole">
-    <providedInterface__OperationProvidedRole href="jobs.repository#_oMJpAGb7EeiZ7YhGqMXvDQ"/>
-  </providedRoles_InterfaceProvidingEntity>
-</system:System>
+<xmi:XMI xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:composition="http://palladiosimulator.org/PalladioComponentModel/Core/Composition/5.2" xmlns:emfprofileapplication="http://www.modelversioning.org/emfprofile/application/1.1" xmlns:org.palladiosimulator.architecturaltemplates.catalog.profiles="org.palladiosimulator.architecturaltemplates.catalog.profiles.staticresourcecontainerloadbalancing" xmlns:repository="http://palladiosimulator.org/PalladioComponentModel/Repository/5.2" xmlns:system="http://palladiosimulator.org/PalladioComponentModel/System/5.2">
+  <system:System id="_N6LpsGb-EeiZ7YhGqMXvDQ" entityName="jobsSystem">
+    <assemblyContexts__ComposedStructure id="WLCGBlueprint_computeJobAssemblyContextSystem" entityName="computeJobSystemAssembly">
+      <encapsulatedComponent__AssemblyContext xsi:type="repository:CompositeComponent" href="jobs.repository#WLCGBlueprint_computeJobCompositeComponent"/>
+    </assemblyContexts__ComposedStructure>
+    <connectors__ComposedStructure xsi:type="composition:ProvidedDelegationConnector" id="_jv0gQGb-EeiZ7YhGqMXvDQ" entityName="newProvidedDelegationConnector" outerProvidedRole_ProvidedDelegationConnector="_TjzkoGb-EeiZ7YhGqMXvDQ" assemblyContext_ProvidedDelegationConnector="WLCGBlueprint_computeJobAssemblyContextSystem">
+      <innerProvidedRole_ProvidedDelegationConnector href="jobs.repository#_ZU5rcGb8EeiZ7YhGqMXvDQ"/>
+    </connectors__ComposedStructure>
+    <providedRoles_InterfaceProvidingEntity xsi:type="repository:OperationProvidedRole" id="_TjzkoGb-EeiZ7YhGqMXvDQ" entityName="blueprintJobSystemProvidedRole">
+      <providedInterface__OperationProvidedRole href="jobs.repository#_oMJpAGb7EeiZ7YhGqMXvDQ"/>
+    </providedRoles_InterfaceProvidingEntity>
+  </system:System>
+  <emfprofileapplication:ProfileApplication>
+    <stereotypeApplications xsi:type="org.palladiosimulator.architecturaltemplates.catalog.profiles:StaticResourceContainerLoadbalancingSystem" appliedTo="_N6LpsGb-EeiZ7YhGqMXvDQ">
+      <extension href="../../plugin/org.palladiosimulator.architecturaltemplates.catalog/profiles/StaticResourceContainerLoadbalancing.emfprofile_diagram#_tveRoL0NEeSXc41T9TupKQ"/>
+    </stereotypeApplications>
+    <importedProfiles nsURI="org.palladiosimulator.architecturaltemplates.catalog.profiles.staticresourcecontainerloadbalancing" location="platform:/plugin/org.palladiosimulator.architecturaltemplates.catalog/profiles/StaticResourceContainerLoadbalancing.emfprofile_diagram"/>
+  </emfprofileapplication:ProfileApplication>
+</xmi:XMI>
