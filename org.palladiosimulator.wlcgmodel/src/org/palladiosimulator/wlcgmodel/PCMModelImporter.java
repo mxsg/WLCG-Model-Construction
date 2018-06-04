@@ -450,6 +450,9 @@ public class PCMModelImporter {
     }
 
     private void changeIds(EObject object) {
+        // Change the ID of the object itself
+        EcoreUtil.setID(object, EcoreUtil.generateUUID());
+
         TreeIterator<EObject> i = object.eAllContents();
         while (i.hasNext()) {
             EObject obj = i.next();
