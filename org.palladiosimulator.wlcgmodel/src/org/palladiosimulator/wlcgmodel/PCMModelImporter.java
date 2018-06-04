@@ -15,7 +15,9 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.util.EcoreUtil;
+import org.modelversioning.emfprofile.Stereotype;
 import org.palladiosimulator.commons.eclipseutils.FileHelper;
+import org.palladiosimulator.mdsdprofiles.api.StereotypeAPI;
 import org.palladiosimulator.pcm.allocation.Allocation;
 import org.palladiosimulator.pcm.allocation.AllocationContext;
 import org.palladiosimulator.pcm.allocation.AllocationFactory;
@@ -156,6 +158,21 @@ public class PCMModelImporter {
         List<ResourceContainer> resourceContainers = resEnv.getResourceContainer_ResourceEnvironment();
         ResourceContainer blueprintContainer = findObjectWithId(resourceContainers, BLUEPRINT_NODE);
 
+        List<Stereotype> blueprintStereotypes = StereotypeAPI.getAppliedStereotypes(blueprintContainer);
+
+        Stereotype loadBalancedResourceContainerStereotype = blueprintStereotypes.stream()
+                .filter(stereotype -> "StaticLoadbalancedResourceContainer".equals(stereotype.getName())).findAny()
+                .orElse(null);
+
+        if (loadBalancedResourceContainerStereotype == null) {
+            throw new IllegalArgumentException("Invalid model blueprint!");
+        }
+
+        // System.out.println("Found stereotypes on blueprint element:");
+        // for(Stereotype stereotype : blueprintStereotypes) {
+        // System.out.println(stereotype);
+        // }
+
         if (blueprintContainer == null) {
             throw new IllegalArgumentException("Invalid resource environment model");
         }
@@ -188,6 +205,16 @@ public class PCMModelImporter {
 
             // Add new node to resource environment
             newNode.setResourceEnvironment_ResourceContainer(resEnv);
+
+            // Add stereotypes for Architectural Template Application
+            // This needs to be done last so that the new node is already included in a
+            // resource
+            // TODO Put this elsewhere, move all AT application code together!
+            StereotypeAPI.applyStereotype(newNode, loadBalancedResourceContainerStereotype);
+
+            // Set duplication number to correct value
+            StereotypeAPI.setTaggedValue(newNode, nodeType.getNodeCount(), "StaticLoadbalancedResourceContainer",
+                    "numberOfReplicas");
         }
 
         // Complete Usage Model
