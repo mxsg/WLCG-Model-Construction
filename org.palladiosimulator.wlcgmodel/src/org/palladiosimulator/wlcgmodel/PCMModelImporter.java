@@ -16,6 +16,9 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.palladiosimulator.commons.eclipseutils.FileHelper;
+import org.palladiosimulator.pcm.allocation.Allocation;
+import org.palladiosimulator.pcm.allocation.AllocationContext;
+import org.palladiosimulator.pcm.allocation.AllocationFactory;
 import org.palladiosimulator.pcm.core.CoreFactory;
 import org.palladiosimulator.pcm.core.PCMRandomVariable;
 import org.palladiosimulator.pcm.core.composition.AssemblyContext;
@@ -45,7 +48,7 @@ public class PCMModelImporter {
     private static final String REPO_MODEL_FILENAME = "jobs.repository";
     private static final String SYSTEM_MODEL_FILENAME = "jobs.system";
     private static final String RESOURCE_ENVIRONMENT_MODEL_FILENAME = "nodes.resourceenvironment";
-    private static final String ALLOCATION_MODEL_FILENAME = "node.allocation";
+    private static final String ALLOCATION_MODEL_FILENAME = "newAllocation.allocation";
     private static final String USAGE_MODEL_FILENAME = "wlcg.usagemodel";
 
     private static final String NODE_DESCRIPTION_FILENAME = "nodes.json";
@@ -68,6 +71,9 @@ public class PCMModelImporter {
     private Map<String, OperationProvidedRole> providedRolesComputeJobAssembly = new HashMap<>();
     private Map<String, OperationProvidedRole> providedRolesSystem = new HashMap<>();
     private Map<String, OperationSignature> jobSignatures = new HashMap<>();
+
+    private List<ResourceContainer> resourceContainerTypes = new ArrayList<>();
+    private AssemblyContext computeJobAssembly = null;
 
     public PCMModelImporter() {
     }
@@ -114,6 +120,9 @@ public class PCMModelImporter {
         List<AssemblyContext> systemAssemblies = system.getAssemblyContexts__ComposedStructure();
         AssemblyContext computeAssembly = (AssemblyContext) findObjectWithId(systemAssemblies,
                 COMPUTE_ASSEMBLY_CONTEXT_SYSTEM);
+
+        // Add for later use
+        this.computeJobAssembly = computeAssembly;
 
         for (JobTypeDescription jobDescription : jobs) {
             String jobTypeName = jobDescription.getTypeName();
@@ -174,6 +183,9 @@ public class PCMModelImporter {
             // Do not forget to change all IDs for the copied objects
             changeIds(newNode);
 
+            // Add new resource container to tracked resource containers
+            this.resourceContainerTypes.add(newNode);
+
             // Add new node to resource environment
             newNode.setResourceEnvironment_ResourceContainer(resEnv);
         }
@@ -212,13 +224,31 @@ public class PCMModelImporter {
         }
 
         // Remove blueprint usage scenario from the usage model
+        // This is important to not alter the generated load profile.
         blueprintUsageScenario.setUsageModel_UsageScenario(null);
+
+        // Complete Allocation Model
+
+        Resource allocationModelResource = resourceSet.getResource(modelsPath.appendSegment(ALLOCATION_MODEL_FILENAME),
+                true);
+        Allocation allocation = (Allocation) allocationModelResource.getContents().get(0);
+
+        for (ResourceContainer nodeType : resourceContainerTypes) {
+
+            AllocationContext context = AllocationFactory.eINSTANCE.createAllocationContext();
+
+            context.setResourceContainer_AllocationContext(nodeType);
+            context.setAssemblyContext_AllocationContext(computeJobAssembly);
+
+            context.setAllocation_AllocationContext(allocation);
+        }
 
         try {
             repositoryResource.save(null);
             systemResource.save(null);
             resourceEnvironmentResource.save(null);
             usageModelResource.save(null);
+            allocationModelResource.save(null);
         } catch (IOException e) {
             System.out.println("Error while saving resources, e: " + e);
         }
