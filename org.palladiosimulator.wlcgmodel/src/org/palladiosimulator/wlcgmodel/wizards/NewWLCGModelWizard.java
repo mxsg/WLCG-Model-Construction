@@ -51,7 +51,8 @@ import org.eclipse.ui.wizards.newresource.BasicNewProjectResourceWizard;
 import org.palladiosimulator.architecturaltemplates.AT;
 import org.palladiosimulator.commons.eclipseutils.FileHelper;
 import org.palladiosimulator.editors.sirius.custom.util.SiriusCustomUtil;
-import org.palladiosimulator.wlcgmodel.PCMModelImporter;
+import org.palladiosimulator.wlcgmodel.Config;
+import org.palladiosimulator.wlcgmodel.PCMModelCompletion;
 
 /**
  * A wizard to create a new palladio model according to a chosen template.
@@ -63,7 +64,6 @@ public class NewWLCGModelWizard extends Wizard implements INewWizard {
     
 	private static final String PERSPECTIVE_ID = "org.palladiosimulator.pcmbench.perspectives.palladio";
 	
-    private static final String MODEL_BLUEPRINTS_FOLDER = "platform:/plugin/org.palladiosimulator.wlcgmodel/blueprint-wlcg";
     private static final String[] MODEL_BLUEPRINT_NAMES = {"exp.experiments",
                                                            "jobs.repository",
                                                            "jobs.system",
@@ -199,13 +199,12 @@ public class NewWLCGModelWizard extends Wizard implements INewWizard {
             
             
             // Try loading and writing models
-            PCMModelImporter importer = new PCMModelImporter();
+            PCMModelCompletion importer = new PCMModelCompletion();
             
             // Compute project location
             URI projectURI = URI.createURI(projectHandle.getFullPath().toString());
-            System.out.println(projectURI);
             
-            importer.completeModels(projectURI, computeParameterPath());
+            importer.loadParametersAndCompleteModels(projectURI, computeParameterPath());
             
             convertToModelingProject(projectHandle,
                     SubMonitor.convert(monitor, "Converting to Modeling Project", 2000));
@@ -288,14 +287,13 @@ public class NewWLCGModelWizard extends Wizard implements INewWizard {
         return templateFolderURI.appendSegments(segments);
     }
     
-    private URI computeBlueprintPath() {
-    	return URI.createURI(MODEL_BLUEPRINTS_FOLDER);
+    private static URI computeBlueprintPath() {
+        return URI.createURI(Config.MODEL_BLUEPRINTS_FOLDER);
     }
     
-    private URI computeParameterPath() {
-    	return URI.createURI(MODEL_PARAMETER_FOLDER);
+    private static URI computeParameterPath() {
+        return URI.createURI(MODEL_PARAMETER_FOLDER);
     }
-
 
     /**
      * Root folder of the eObject.
