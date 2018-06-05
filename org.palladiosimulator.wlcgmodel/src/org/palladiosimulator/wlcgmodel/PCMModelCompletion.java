@@ -45,16 +45,13 @@ import org.palladiosimulator.pcm.usagemodel.OpenWorkload;
 import org.palladiosimulator.pcm.usagemodel.UsageModel;
 import org.palladiosimulator.pcm.usagemodel.UsageScenario;
 
-public class PCMModelImporter {
+public class PCMModelCompletion {
 
     private static final String REPO_MODEL_FILENAME = "jobs.repository";
     private static final String SYSTEM_MODEL_FILENAME = "jobs.system";
     private static final String RESOURCE_ENVIRONMENT_MODEL_FILENAME = "nodes.resourceenvironment";
     private static final String ALLOCATION_MODEL_FILENAME = "newAllocation.allocation";
     private static final String USAGE_MODEL_FILENAME = "wlcg.usagemodel";
-
-    private static final String NODE_DESCRIPTION_FILENAME = "nodes.json";
-    private static final String JOB_DESCRIPTION_FILENAME = "jobs.json";
 
     private static final String COMPUTE_JOB_COMPOSITE_COMPONENT_ID = "WLCGBlueprint_computeJobCompositeComponent";
     private static final String BLUEPRINT_JOB_COMPONENT_ID = "WLCGBlueprint_blueprintJobComponent";
@@ -69,6 +66,7 @@ public class PCMModelImporter {
     private static final String BLUEPRINT_USAGE_SCENARIO = "WLCGBlueprint_blueprintUsageScenario";
     private static final String BLUEPRINT_ENTRY_LEVEL_SYSTEM_CALL = "WLCGBlueprint_blueprintEntryLevelSystemCall";
 
+    // Used for holding model elements that are later needed to connect models
     private Map<String, OperationInterface> jobInterfaces = new HashMap<>();
     private Map<String, OperationProvidedRole> providedRolesComputeJobAssembly = new HashMap<>();
     private Map<String, OperationProvidedRole> providedRolesSystem = new HashMap<>();
@@ -77,12 +75,11 @@ public class PCMModelImporter {
     private List<ResourceContainer> resourceContainerTypes = new ArrayList<>();
     private AssemblyContext computeJobAssembly = null;
 
-    public PCMModelImporter() {
+    public PCMModelCompletion() {
     }
-
-    public void completeModels(final URI modelsPath, final URI parameterPath) {
-        // final URI parameterPath, final IContainer target
-
+    
+    public void completeModels(final URI modelsPath, List<NodeTypeDescription> nodes, List<JobTypeDescription> jobs) {
+        
         // For now, only import the repository model
         URI repositoryPath = modelsPath.appendSegment(REPO_MODEL_FILENAME);
 
@@ -90,27 +87,8 @@ public class PCMModelImporter {
         Resource repositoryResource = resourceSet.getResource(repositoryPath, true);
         Repository repository = (Repository) repositoryResource.getContents().get(0);
 
-        // Find parameter files and import data
-
-        String nodeDescriptionPath = parameterPath.appendSegment(NODE_DESCRIPTION_FILENAME).toString();
-        File nodeDescriptionFile = FileHelper.getFile(nodeDescriptionPath);
-
-        List<NodeTypeDescription> nodes = new ArrayList<>();
-        try {
-            nodes = ParameterJSONImportHelper.readNodeTypes(nodeDescriptionFile);
-        } catch (Exception e) {
-            System.out.println("Something went wrong when importing node types! E: " + e);
-        }
-
-        String jobTypeDescriptionPath = parameterPath.appendSegment(JOB_DESCRIPTION_FILENAME).toString();
-        File jobDescriptionFile = FileHelper.getFile(jobTypeDescriptionPath);
-        List<JobTypeDescription> jobs = new ArrayList<>();
-        try {
-            jobs = ParameterJSONImportHelper.readJobTypes(jobDescriptionFile);
-        } catch (Exception e) {
-            System.out.println("Something went wrong when importing jobs types! E: " + e);
-        }
-
+        // Complete repository model
+        
         completeRepositoryModel(repository, jobs);
 
         // Complete system model
@@ -167,11 +145,6 @@ public class PCMModelImporter {
         if (loadBalancedResourceContainerStereotype == null) {
             throw new IllegalArgumentException("Invalid model blueprint!");
         }
-
-        // System.out.println("Found stereotypes on blueprint element:");
-        // for(Stereotype stereotype : blueprintStereotypes) {
-        // System.out.println(stereotype);
-        // }
 
         if (blueprintContainer == null) {
             throw new IllegalArgumentException("Invalid resource environment model");
@@ -279,19 +252,36 @@ public class PCMModelImporter {
         } catch (IOException e) {
             System.out.println("Error while saving resources, e: " + e);
         }
-
-        // for(NodeTypeDescription node : nodes) {
-        // System.out.println(node);
-        // }
-
-        // File repoModelSource = FileHelper.getFile(repositoryPath.toFileString());
-        //
-        // final ResourceSet resourceSet = new ResourceSetImpl();
-        // Resource resource = resourceSet.getResource(repositoryPath, true);
     }
 
-    public void completeModels(final URI modelsPath) {
-        System.out.println("Attempting to complete models ...");
+    public void loadParametersAndCompleteModels(final URI modelsPath, final URI parameterPath) {
+        // final URI parameterPath, final IContainer target
+
+
+        // Find parameter files and import data
+
+        String nodeDescriptionPath = parameterPath.appendSegment(Config.NODE_DESCRIPTION_FILENAME).toString();
+        File nodeDescriptionFile = FileHelper.getFile(nodeDescriptionPath);
+
+        List<NodeTypeDescription> nodes = new ArrayList<>();
+        try {
+            nodes = ParameterJSONImportHelper.readNodeTypes(nodeDescriptionFile);
+        } catch (Exception e) {
+            System.out.println("Something went wrong when importing node types! E: " + e);
+        }
+
+        String jobTypeDescriptionPath = parameterPath.appendSegment(Config.JOB_DESCRIPTION_FILENAME).toString();
+        File jobDescriptionFile = FileHelper.getFile(jobTypeDescriptionPath);
+        List<JobTypeDescription> jobs = new ArrayList<>();
+        try {
+            jobs = ParameterJSONImportHelper.readJobTypes(jobDescriptionFile);
+        } catch (Exception e) {
+            System.out.println("Something went wrong when importing jobs types! E: " + e);
+        }
+        
+        // Attempt to actually complete models
+        completeModels(modelsPath, nodes, jobs);
+
     }
 
     public void completeRepositoryModel(Repository repository, List<JobTypeDescription> jobTypes) {
