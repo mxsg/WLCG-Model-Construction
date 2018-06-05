@@ -31,8 +31,36 @@
          point="org.eclipse.ui.menus">
       <menuContribution
             allPopups="false"
-            locationURI="menu:org.eclipse.ui.main.menu">
+            locationURI="popup:org.eclipse.jdt.ui.PackageExplorer?after=additions">
+         <command
+               commandId="org.palladiosimulator.wlcgmodel.completeproject"
+               style="push">
+         </command>
       </menuContribution>
+      <menuContribution
+            allPopups="false"
+            locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?after=additions">
+         <command
+               commandId="org.palladiosimulator.wlcgmodel.completeproject"
+               style="push">
+         </command>
+      </menuContribution>
+      <menuContribution
+            allPopups="false"
+            locationURI="popup:org.eclipse.sirius.ui.tools.views.model.explorer#PopupMenu?after=additions">
+         <command
+               commandId="org.palladiosimulator.wlcgmodel.completeproject"
+               style="push">
+         </command>
+      </menuContribution>
+   </extension>
+   <extension
+         point="org.eclipse.ui.commands">
+      <command
+            defaultHandler="org.palladiosimulator.wlcgmodel.commands.NavigationPopupHandler"
+            id="org.palladiosimulator.wlcgmodel.completeproject"
+            name="Complete WLCG Model With This Parameter Set">
+      </command>
    </extension>
 
 </plugin>
