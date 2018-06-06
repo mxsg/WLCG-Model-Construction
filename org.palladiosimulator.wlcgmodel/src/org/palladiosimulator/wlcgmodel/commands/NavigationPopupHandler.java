@@ -91,6 +91,7 @@ public class NavigationPopupHandler extends AbstractHandler {
         } catch (Exception e) {
             // TODO Show more meaningful error here
             showError("Error while completing the model:\n\n" + e.toString() + "\n" + e.getMessage());
+            return null;
         }
 
         MessageDialog.openInformation(this.window.getShell(), "Model Completion Successful",
