@@ -1,4 +1,4 @@
-# WLCG Model Completion
+# WLCG Model Construction
 
 This Eclipse plugin allows to create WLCG Palladio models from JSON model parameter description files.
 
