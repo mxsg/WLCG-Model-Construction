@@ -1,15 +1,8 @@
 # WLCG Model Completion
 
-This Eclipse plugin allows to create WLCG Palladio models from JSON parameter description files.
+This Eclipse plugin allows to create WLCG Palladio models from JSON model parameter description files.
 
 ## Usage
-
-Installation:
-
-- This plugin requires the [Gson Java (De)serialization](https://github.com/google/gson) package, which is currently not included in the plugin
-    - Download the package jar file in version 2.8.5 from [here](https://repo1.maven.org/maven2/com/google/code/gson/gson/2.8.5/gson-2.8.5.jar) (direct download link)
-    - Place it in the `lib` directory at the plugin root
-    - The external jar is already included in the project and plugin classpath
 
 Notes:
 
