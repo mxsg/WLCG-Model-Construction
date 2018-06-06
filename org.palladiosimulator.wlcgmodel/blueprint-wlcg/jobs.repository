@@ -4,12 +4,18 @@
     <components__Repository xsi:type="repository:BasicComponent" id="WLCGBlueprint_blueprintJobComponent" entityName="jobBlueprint">
       <providedRoles_InterfaceProvidingEntity xsi:type="repository:OperationProvidedRole" id="_8nbaYGb7EeiZ7YhGqMXvDQ" entityName="blueprintBasicProvidedRole" providedInterface__OperationProvidedRole="_oMJpAGb7EeiZ7YhGqMXvDQ"/>
       <serviceEffectSpecifications__BasicComponent xsi:type="seff:ResourceDemandingSEFF" id="WLCGBlueprint_runBlueprintJobSEFF" describedService__SEFF="_pvENQGb7EeiZ7YhGqMXvDQ">
-        <steps_Behaviour xsi:type="seff:StartAction" id="_8nx_sWb7EeiZ7YhGqMXvDQ" successor_AbstractAction="WLCGBlueprint_runBlueprintJobSEFF_internalAction"/>
-        <steps_Behaviour xsi:type="seff:StopAction" id="_8nx_smb7EeiZ7YhGqMXvDQ" predecessor_AbstractAction="WLCGBlueprint_runBlueprintJobSEFF_internalAction"/>
-        <steps_Behaviour xsi:type="seff:InternalAction" id="WLCGBlueprint_runBlueprintJobSEFF_internalAction" entityName="InternalAction1" predecessor_AbstractAction="_8nx_sWb7EeiZ7YhGqMXvDQ" successor_AbstractAction="_8nx_smb7EeiZ7YhGqMXvDQ">
+        <steps_Behaviour xsi:type="seff:StartAction" id="_8nx_sWb7EeiZ7YhGqMXvDQ" successor_AbstractAction="WLCGBlueprint_runBlueprintJobSEFF_ioAction"/>
+        <steps_Behaviour xsi:type="seff:StopAction" id="_8nx_smb7EeiZ7YhGqMXvDQ" predecessor_AbstractAction="WLCGBlueprint_runBlueprintJobSEFF_cpuAction"/>
+        <steps_Behaviour xsi:type="seff:InternalAction" id="WLCGBlueprint_runBlueprintJobSEFF_cpuAction" entityName="processingAction" predecessor_AbstractAction="WLCGBlueprint_runBlueprintJobSEFF_ioAction" successor_AbstractAction="_8nx_smb7EeiZ7YhGqMXvDQ">
           <resourceDemand_Action>
-            <specification_ParametericResourceDemand specification="1.0"/>
+            <specification_ParametericResourceDemand specification="0.0"/>
             <requiredResource_ParametricResourceDemand href="pathmap://PCM_MODELS/Palladio.resourcetype#_oro4gG3fEdy4YaaT-RYrLQ"/>
+          </resourceDemand_Action>
+        </steps_Behaviour>
+        <steps_Behaviour xsi:type="seff:InternalAction" id="WLCGBlueprint_runBlueprintJobSEFF_ioAction" entityName="ioAction" predecessor_AbstractAction="_8nx_sWb7EeiZ7YhGqMXvDQ" successor_AbstractAction="WLCGBlueprint_runBlueprintJobSEFF_cpuAction">
+          <resourceDemand_Action>
+            <specification_ParametericResourceDemand specification="0.0"/>
+            <requiredResource_ParametricResourceDemand href="pathmap://PCM_MODELS/Palladio.resourcetype#_BIjHoQ3KEdyouMqirZIhzQ"/>
           </resourceDemand_Action>
         </steps_Behaviour>
       </serviceEffectSpecifications__BasicComponent>
