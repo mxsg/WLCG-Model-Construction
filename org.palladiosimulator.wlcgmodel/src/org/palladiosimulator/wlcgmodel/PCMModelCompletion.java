@@ -40,6 +40,7 @@ import org.palladiosimulator.pcm.resourceenvironment.ResourceEnvironment;
 import org.palladiosimulator.pcm.seff.InternalAction;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 import org.palladiosimulator.pcm.seff.ServiceEffectSpecification;
+import org.palladiosimulator.pcm.seff.seff_performance.ParametricResourceDemand;
 import org.palladiosimulator.pcm.usagemodel.EntryLevelSystemCall;
 import org.palladiosimulator.pcm.usagemodel.OpenWorkload;
 import org.palladiosimulator.pcm.usagemodel.UsageModel;
@@ -57,6 +58,9 @@ public class PCMModelCompletion {
     private static final String BLUEPRINT_JOB_COMPONENT_ID = "WLCGBlueprint_blueprintJobComponent";
     private static final String BLUEPRINT_JOB_SEFF = "WLCGBlueprint_runBlueprintJobSEFF";
     private static final String BLUEPRINT_JOB_SEFF_INTERNAL_ACTION = "WLCGBlueprint_runBlueprintJobSEFF_internalAction";
+    private static final String BLUEPRINT_JOB_CPU_ACTION = "WLCGBlueprint_runBlueprintJobSEFF_cpuAction";
+    private static final String BLUEPRINT_JOB_IO_ACTION = "WLCGBlueprint_runBlueprintJobSEFF_ioAction";
+
     private static final String BLUEPRINT_JOB_SEFF_INTERNAL_CPU_RESOURCE_TYPE = "WLCGBlueprint_runBlueprintJobSEFF_cpu_resourcetype";
     private static final String COMPUTE_ASSEMBLY_CONTEXT_SYSTEM = "WLCGBlueprint_computeJobAssemblyContextSystem";
     private static final String BLUEPRINT_NODE = "WLCGBlueprint_blueprintNode";
@@ -424,35 +428,43 @@ public class PCMModelCompletion {
     public ResourceDemandingSEFF buildJobSEFF(ResourceDemandingSEFF blueprintSEFF, String seffName,
             JobTypeDescription jobType) {
 
+        // Copy object, change IDs below after finding contained objects from blueprint
         ResourceDemandingSEFF newSeff = EcoreUtil.copy(blueprintSEFF);
-        EcoreUtil.setID(newSeff, EcoreUtil.generateUUID());
 
         InternalAction cpuDemandAction = null;
-        PCMRandomVariable cpuDemandVariable = null;
+        InternalAction ioDemandAction = null;
 
-        // Iterate through all the contents of the Seff to change IDs and find elements
-        // to change
-        TreeIterator<EObject> j = newSeff.eAllContents();
-        while (j.hasNext()) {
-            EObject obj = j.next();
-
-            // Reset all IDs for contained objects that have IDs
-            // Todo What is the clean way to do this?
-            try {
-                EcoreUtil.setID(obj, EcoreUtil.generateUUID());
-            } catch (IllegalArgumentException e) {
-                // Object does not have ID, do not reset
-            }
-
-            if (obj instanceof InternalAction) {
-                cpuDemandAction = (InternalAction) obj;
-
-            } else if (obj instanceof PCMRandomVariable) {
-                cpuDemandVariable = (PCMRandomVariable) obj;
-            }
+        EObject actionObject = findObjectWithIdRecursively(newSeff, BLUEPRINT_JOB_CPU_ACTION);
+        if (actionObject instanceof InternalAction) {
+            cpuDemandAction = (InternalAction) actionObject;
         }
 
-        cpuDemandVariable.setSpecification(jobType.getCpuDemandStoEx());
+        actionObject = findObjectWithIdRecursively(newSeff, BLUEPRINT_JOB_IO_ACTION);
+        if (actionObject instanceof InternalAction) {
+            ioDemandAction = (InternalAction) actionObject;
+        }
+
+        // Iterate through the actions to find the random variable for I/O, CPU demand
+        ParametricResourceDemand cpuDemand = findParametricResourceDemand(cpuDemandAction);
+        ParametricResourceDemand ioDemand = findParametricResourceDemand(ioDemandAction);
+
+        if (cpuDemand == null || ioDemand == null) {
+            throw new IllegalArgumentException("Invalid model blueprint: missing internal actions.");
+        }
+
+        PCMRandomVariable cpuVar = CoreFactory.eINSTANCE.createPCMRandomVariable();
+        cpuVar.setSpecification(jobType.getCpuDemandStoEx());
+        cpuDemand.setSpecification_ParametericResourceDemand(cpuVar);
+
+        PCMRandomVariable ioVar = CoreFactory.eINSTANCE.createPCMRandomVariable();
+        ioVar.setSpecification(jobType.getIoTimeStoEx());
+        ioDemand.setSpecification_ParametericResourceDemand(ioVar);
+
+        cpuDemand.setSpecification_ParametericResourceDemand(cpuVar);
+        ioDemand.setSpecification_ParametericResourceDemand(ioVar);
+
+        // Change IDs to prevent conflicts
+        changeIds(newSeff);
 
         return newSeff;
     }
@@ -539,5 +551,23 @@ public class PCMModelCompletion {
                 // Object does not have ID, do not reset
             }
         }
+    }
+
+    private ParametricResourceDemand findParametricResourceDemand(EObject object) {
+        if (object == null) {
+            return null;
+        }
+
+        TreeIterator<EObject> j = object.eAllContents();
+        while (j.hasNext()) {
+            EObject obj = j.next();
+
+            if (obj instanceof ParametricResourceDemand) {
+                return (ParametricResourceDemand) obj;
+            }
+        }
+
+        return null;
+
     }
 }
