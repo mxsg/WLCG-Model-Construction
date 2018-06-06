@@ -5,6 +5,3 @@ tmp/
 
 # Locally stored "Eclipse launch configurations"
 *.launch
-
-# External library jar files
-lib/
