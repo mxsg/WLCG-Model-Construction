@@ -356,7 +356,8 @@ public class PCMModelCompletion {
 
         // TODO Replace this with the real resource demand StoEx for the number of
         // required job slots
-        StereotypeAPI.setTaggedValue(component, 1, "MiddlewareDependency", "numberRequiredResources");
+        StereotypeAPI.setTaggedValue(component, jobType.getRequiredJobslotsStoEx(), "MiddlewareDependency",
+                "numberRequiredResources");
 
         // Create the interface with a single signature
         OperationInterface typeInterface = RepositoryFactory.eINSTANCE.createOperationInterface();
