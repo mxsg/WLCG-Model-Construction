@@ -77,9 +77,9 @@ public class PCMModelCompletion {
 
     public PCMModelCompletion() {
     }
-    
+
     public void completeModels(final URI modelsPath, List<NodeTypeDescription> nodes, List<JobTypeDescription> jobs) {
-        
+
         // For now, only import the repository model
         URI repositoryPath = modelsPath.appendSegment(REPO_MODEL_FILENAME);
 
@@ -88,7 +88,7 @@ public class PCMModelCompletion {
         Repository repository = (Repository) repositoryResource.getContents().get(0);
 
         // Complete repository model
-        
+
         completeRepositoryModel(repository, jobs);
 
         // Complete system model
@@ -136,18 +136,23 @@ public class PCMModelCompletion {
         List<ResourceContainer> resourceContainers = resEnv.getResourceContainer_ResourceEnvironment();
         ResourceContainer blueprintContainer = findObjectWithId(resourceContainers, BLUEPRINT_NODE);
 
+        if (blueprintContainer == null) {
+            throw new IllegalArgumentException(
+                    "Invalid resource environment model, missing blueprint resource container.");
+        }
+
+        // Find blueprint stereotypes
         List<Stereotype> blueprintStereotypes = StereotypeAPI.getAppliedStereotypes(blueprintContainer);
 
         Stereotype loadBalancedResourceContainerStereotype = blueprintStereotypes.stream()
                 .filter(stereotype -> "StaticLoadbalancedResourceContainer".equals(stereotype.getName())).findAny()
                 .orElse(null);
 
-        if (loadBalancedResourceContainerStereotype == null) {
-            throw new IllegalArgumentException("Invalid model blueprint!");
-        }
+        Stereotype middlewareHostStereotype = blueprintStereotypes.stream()
+                .filter(stereotype -> "MiddlewareHost".contentEquals(stereotype.getName())).findAny().orElse(null);
 
-        if (blueprintContainer == null) {
-            throw new IllegalArgumentException("Invalid resource environment model");
+        if (loadBalancedResourceContainerStereotype == null || middlewareHostStereotype == null) {
+            throw new IllegalArgumentException("Invalid model blueprint, missing stereotypes on resource container!");
         }
 
         for (NodeTypeDescription nodeType : nodes) {
@@ -188,6 +193,9 @@ public class PCMModelCompletion {
             // Set duplication number to correct value
             StereotypeAPI.setTaggedValue(newNode, nodeType.getNodeCount(), "StaticLoadbalancedResourceContainer",
                     "numberOfReplicas");
+
+            StereotypeAPI.applyStereotype(newNode, middlewareHostStereotype);
+            StereotypeAPI.setTaggedValue(newNode, nodeType.getJobslots(), "MiddlewareHost", "capacity");
         }
 
         // Complete Usage Model
@@ -257,7 +265,6 @@ public class PCMModelCompletion {
     public void loadParametersAndCompleteModels(final URI modelsPath, final URI parameterPath) {
         // final URI parameterPath, final IContainer target
 
-
         // Find parameter files and import data
 
         String nodeDescriptionPath = parameterPath.appendSegment(Config.NODE_DESCRIPTION_FILENAME).toString();
@@ -278,7 +285,7 @@ public class PCMModelCompletion {
         } catch (Exception e) {
             System.out.println("Something went wrong when importing jobs types! E: " + e);
         }
-        
+
         // Attempt to actually complete models
         completeModels(modelsPath, nodes, jobs);
 
@@ -300,6 +307,17 @@ public class PCMModelCompletion {
         // System.out.println("Found basic Component: " +
         // EcoreUtil.getID(blueprintJob));
 
+        // Find blueprint stereotypes
+
+        List<Stereotype> blueprintStereotypes = StereotypeAPI.getAppliedStereotypes(blueprintJob);
+
+        Stereotype middlewareDependencyStereotype = blueprintStereotypes.stream()
+                .filter(stereotype -> "MiddlewareDependency".equals(stereotype.getName())).findAny().orElse(null);
+
+        if (middlewareDependencyStereotype == null) {
+            throw new IllegalArgumentException("Invalid model blueprint, missing middleware dependency stereotype!");
+        }
+
         ServiceEffectSpecification seff = findObjectWithId(
                 blueprintJob.getServiceEffectSpecifications__BasicComponent(), BLUEPRINT_JOB_SEFF);
 
@@ -315,7 +333,8 @@ public class PCMModelCompletion {
 
         for (JobTypeDescription job : jobTypes) {
             System.out.println("Adding job type to repository: " + job.getTypeName());
-            buildAndAddJobComponentWithProvidedInterface(repository, job, resourceSeff, computeJob);
+            buildAndAddJobComponentWithProvidedInterface(repository, job, resourceSeff, computeJob,
+                    middlewareDependencyStereotype);
         }
 
         // BasicComponent copyJob = EcoreUtil.copy(blueprintJob);
@@ -323,7 +342,8 @@ public class PCMModelCompletion {
     }
 
     public BasicComponent buildAndAddJobComponentWithProvidedInterface(Repository repository,
-            JobTypeDescription jobType, ResourceDemandingSEFF blueprintSeff, CompositeComponent computeJob) {
+            JobTypeDescription jobType, ResourceDemandingSEFF blueprintSeff, CompositeComponent computeJob,
+            Stereotype stereotypeToApply) {
 
         BasicComponent component = RepositoryFactory.eINSTANCE.createBasicComponent();
 
@@ -331,6 +351,12 @@ public class PCMModelCompletion {
 
         component.setEntityName(jobTypeName);
         repository.getComponents__Repository().add(component);
+
+        StereotypeAPI.applyStereotype(component, stereotypeToApply);
+
+        // TODO Replace this with the real resource demand StoEx for the number of
+        // required job slots
+        StereotypeAPI.setTaggedValue(component, 1, "MiddlewareDependency", "numberRequiredResources");
 
         // Create the interface with a single signature
         OperationInterface typeInterface = RepositoryFactory.eINSTANCE.createOperationInterface();
