@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ASCII"?>
-<xmi:XMI xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:emfprofileapplication="http://www.modelversioning.org/emfprofile/application/1.1" xmlns:org.palladiosimulator.architecturaltemplates.catalog.profiles="org.palladiosimulator.architecturaltemplates.catalog.profiles.staticresourcecontainerloadbalancing" xmlns:org.palladiosimulator.architecturaltemplates.catalog.profiles_1="org.palladiosimulator.architecturaltemplates.catalog.profiles.middlewarepassiveresource" xmlns:resourceenvironment="http://palladiosimulator.org/PalladioComponentModel/ResourceEnvironment/5.2">
+<xmi:XMI xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:emfprofileapplication="http://www.modelversioning.org/emfprofile/application/1.1" xmlns:org.palladiosimulator.loadbalancingaction.catalog.profiles="org.palladiosimulator.loadbalancingaction.catalog.profiles.middlewarepassiveresource" xmlns:org.palladiosimulator.loadbalancingaction.catalog.profiles_1="org.palladiosimulator.loadbalancingaction.catalog.profiles.staticresourcecontainerloadbalancing" xmlns:resourceenvironment="http://palladiosimulator.org/PalladioComponentModel/ResourceEnvironment/5.2">
   <resourceenvironment:ResourceEnvironment entityName="New ResourceEnvironment">
     <resourceContainer_ResourceEnvironment id="WLCGBlueprint_blueprintNode" entityName="blueprintNode">
       <activeResourceSpecifications_ResourceContainer id="WLCGBlueprint_blueprintCPU">
@@ -17,13 +17,13 @@
     </resourceContainer_ResourceEnvironment>
   </resourceenvironment:ResourceEnvironment>
   <emfprofileapplication:ProfileApplication>
-    <stereotypeApplications xsi:type="org.palladiosimulator.architecturaltemplates.catalog.profiles:StaticLoadbalancedResourceContainer" appliedTo="WLCGBlueprint_blueprintNode">
-      <extension href="../../plugin/org.palladiosimulator.architecturaltemplates.catalog/profiles/StaticResourceContainerLoadbalancing.emfprofile_diagram#_58BuEL0NEeSXc41T9TupKQ"/>
+    <stereotypeApplications xsi:type="org.palladiosimulator.loadbalancingaction.catalog.profiles:MiddlewareHost" appliedTo="WLCGBlueprint_blueprintNode">
+      <extension href="../../plugin/org.palladiosimulator.loadbalancingaction.catalog/profiles/MiddlewarePassiveResource.emfprofile_diagram#_7_c7IExyEeiYCe5Yu6fDjQ"/>
     </stereotypeApplications>
-    <stereotypeApplications xsi:type="org.palladiosimulator.architecturaltemplates.catalog.profiles_1:MiddlewareHost" appliedTo="WLCGBlueprint_blueprintNode">
-      <extension href="../../plugin/org.palladiosimulator.architecturaltemplates.catalog/profiles/MiddlewarePassiveResource.emfprofile_diagram#_7_c7IExyEeiYCe5Yu6fDjQ"/>
+    <stereotypeApplications xsi:type="org.palladiosimulator.loadbalancingaction.catalog.profiles_1:StaticLoadbalancedResourceContainer" appliedTo="WLCGBlueprint_blueprintNode">
+      <extension href="../../plugin/org.palladiosimulator.loadbalancingaction.catalog/profiles/StaticResourceContainerLoadbalancing.emfprofile_diagram#_58BuEL0NEeSXc41T9TupKQ"/>
     </stereotypeApplications>
-    <importedProfiles nsURI="org.palladiosimulator.architecturaltemplates.catalog.profiles.staticresourcecontainerloadbalancing" location="platform:/plugin/org.palladiosimulator.architecturaltemplates.catalog/profiles/StaticResourceContainerLoadbalancing.emfprofile_diagram"/>
-    <importedProfiles nsURI="org.palladiosimulator.architecturaltemplates.catalog.profiles.middlewarepassiveresource" location="platform:/plugin/org.palladiosimulator.architecturaltemplates.catalog/profiles/MiddlewarePassiveResource.emfprofile_diagram"/>
+    <importedProfiles nsURI="org.palladiosimulator.loadbalancingaction.catalog.profiles.staticresourcecontainerloadbalancing" location="platform:/plugin/org.palladiosimulator.loadbalancingaction.catalog/profiles/StaticResourceContainerLoadbalancing.emfprofile_diagram"/>
+    <importedProfiles nsURI="org.palladiosimulator.loadbalancingaction.catalog.profiles.middlewarepassiveresource" location="platform:/plugin/org.palladiosimulator.loadbalancingaction.catalog/profiles/MiddlewarePassiveResource.emfprofile_diagram"/>
   </emfprofileapplication:ProfileApplication>
 </xmi:XMI>

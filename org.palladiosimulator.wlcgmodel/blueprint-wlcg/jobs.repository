@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ASCII"?>
-<xmi:XMI xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:composition="http://palladiosimulator.org/PalladioComponentModel/Core/Composition/5.2" xmlns:emfprofileapplication="http://www.modelversioning.org/emfprofile/application/1.1" xmlns:org.palladiosimulator.architecturaltemplates.catalog.profiles="org.palladiosimulator.architecturaltemplates.catalog.profiles.middlewarepassiveresource" xmlns:repository="http://palladiosimulator.org/PalladioComponentModel/Repository/5.2" xmlns:seff="http://palladiosimulator.org/PalladioComponentModel/SEFF/5.2">
+<xmi:XMI xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:composition="http://palladiosimulator.org/PalladioComponentModel/Core/Composition/5.2" xmlns:emfprofileapplication="http://www.modelversioning.org/emfprofile/application/1.1" xmlns:org.palladiosimulator.loadbalancingaction.catalog.profiles="org.palladiosimulator.loadbalancingaction.catalog.profiles.middlewarepassiveresource" xmlns:repository="http://palladiosimulator.org/PalladioComponentModel/Repository/5.2" xmlns:seff="http://palladiosimulator.org/PalladioComponentModel/SEFF/5.2">
   <repository:Repository id="_6967YGb6EeiZ7YhGqMXvDQ" entityName="jobsRepository">
     <components__Repository xsi:type="repository:BasicComponent" id="WLCGBlueprint_blueprintJobComponent" entityName="jobBlueprint">
       <providedRoles_InterfaceProvidingEntity xsi:type="repository:OperationProvidedRole" id="_8nbaYGb7EeiZ7YhGqMXvDQ" entityName="blueprintBasicProvidedRole" providedInterface__OperationProvidedRole="_oMJpAGb7EeiZ7YhGqMXvDQ"/>
@@ -30,9 +30,9 @@
     </interfaces__Repository>
   </repository:Repository>
   <emfprofileapplication:ProfileApplication>
-    <stereotypeApplications xsi:type="org.palladiosimulator.architecturaltemplates.catalog.profiles:MiddlewareDependency" appliedTo="WLCGBlueprint_blueprintJobComponent">
-      <extension href="../../plugin/org.palladiosimulator.architecturaltemplates.catalog/profiles/MiddlewarePassiveResource.emfprofile_diagram#_UspYMEx0EeiYCe5Yu6fDjQ"/>
+    <stereotypeApplications xsi:type="org.palladiosimulator.loadbalancingaction.catalog.profiles:MiddlewareDependency" appliedTo="WLCGBlueprint_blueprintJobComponent">
+      <extension href="../../plugin/org.palladiosimulator.loadbalancingaction.catalog/profiles/MiddlewarePassiveResource.emfprofile_diagram#_UspYMEx0EeiYCe5Yu6fDjQ"/>
     </stereotypeApplications>
-    <importedProfiles nsURI="org.palladiosimulator.architecturaltemplates.catalog.profiles.middlewarepassiveresource" location="platform:/plugin/org.palladiosimulator.architecturaltemplates.catalog/profiles/MiddlewarePassiveResource.emfprofile_diagram"/>
+    <importedProfiles nsURI="org.palladiosimulator.loadbalancingaction.catalog.profiles.middlewarepassiveresource" location="platform:/plugin/org.palladiosimulator.loadbalancingaction.catalog/profiles/MiddlewarePassiveResource.emfprofile_diagram"/>
   </emfprofileapplication:ProfileApplication>
 </xmi:XMI>
