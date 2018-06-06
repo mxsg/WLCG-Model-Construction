@@ -1,0 +1,100 @@
+[
+    {
+        "computingRate": 12.1875,
+        "cores": 20,
+        "jobslots": 32,
+        "name": "Intel(R) Xeon(R) CPU E5-2630 v4 @ 2.20GHz",
+        "nodeCount": 132
+    },
+    {
+        "computingRate": 16.3125,
+        "cores": 16,
+        "jobslots": 16,
+        "name": "Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz",
+        "nodeCount": 47
+    },
+    {
+        "computingRate": 8.058333333333334,
+        "cores": 24,
+        "jobslots": 24,
+        "name": "AMD Opteron(tm) Processor 6168",
+        "nodeCount": 25
+    },
+    {
+        "computingRate": 13.65,
+        "cores": 16,
+        "jobslots": 24,
+        "name": "Intel(R) Xeon(R) CPU E5-2630 v3 @ 2.40GHz",
+        "nodeCount": 20
+    },
+    {
+        "computingRate": 11.009375,
+        "cores": 16,
+        "jobslots": 32,
+        "name": "Intel(R) Xeon(R) CPU E5-2630 v3 @ 2.40GHz",
+        "nodeCount": 14
+    },
+    {
+        "computingRate": 11.779166666666667,
+        "cores": 16,
+        "jobslots": 24,
+        "name": "Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz",
+        "nodeCount": 14
+    },
+    {
+        "computingRate": 16.655,
+        "cores": 20,
+        "jobslots": 20,
+        "name": "Intel(R) Xeon(R) CPU E5-2630 v4 @ 2.20GHz",
+        "nodeCount": 9
+    },
+    {
+        "computingRate": 10.39,
+        "cores": 20,
+        "jobslots": 40,
+        "name": "Intel(R) Xeon(R) CPU E5-2630 v4 @ 2.20GHz",
+        "nodeCount": 9
+    },
+    {
+        "computingRate": 13.745833333333332,
+        "cores": 16,
+        "jobslots": 24,
+        "name": "Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz",
+        "nodeCount": 8
+    },
+    {
+        "computingRate": 10.875,
+        "cores": 16,
+        "jobslots": 24,
+        "name": "Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz",
+        "nodeCount": 2
+    },
+    {
+        "computingRate": 12.708333333333334,
+        "cores": 16,
+        "jobslots": 24,
+        "name": "Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz",
+        "nodeCount": 1
+    },
+    {
+        "computingRate": 13.620833333333332,
+        "cores": 16,
+        "jobslots": 24,
+        "name": "Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz",
+        "nodeCount": 1
+    },
+    {
+        "computingRate": 8.966666666666667,
+        "cores": 48,
+        "jobslots": 48,
+        "name": "AMD Opteron(tm) Processor 6174",
+        "nodeCount": 1
+    },
+    {
+        "computingRate": 18.705000000000002,
+        "cores": 20,
+        "jobslots": 20,
+        "name": "Intel(R) Xeon(R) CPU E5-2660 v3 @ 2.60GHz",
+        "nodeCount": 1
+    }
+]
