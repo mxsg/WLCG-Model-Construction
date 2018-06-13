@@ -45,8 +45,10 @@ import org.palladiosimulator.pcm.seff.InternalAction;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 import org.palladiosimulator.pcm.seff.ServiceEffectSpecification;
 import org.palladiosimulator.pcm.seff.seff_performance.ParametricResourceDemand;
+import org.palladiosimulator.pcm.usagemodel.Branch;
+import org.palladiosimulator.pcm.usagemodel.BranchTransition;
 import org.palladiosimulator.pcm.usagemodel.EntryLevelSystemCall;
-import org.palladiosimulator.pcm.usagemodel.OpenWorkload;
+import org.palladiosimulator.pcm.usagemodel.ScenarioBehaviour;
 import org.palladiosimulator.pcm.usagemodel.UsageModel;
 import org.palladiosimulator.pcm.usagemodel.UsageScenario;
 import org.palladiosimulator.pcmmeasuringpoint.ActiveResourceMeasuringPoint;
@@ -79,6 +81,7 @@ public class PCMModelCompletion {
 
     private static final String BLUEPRINT_USAGE_SCENARIO = "WLCGBlueprint_blueprintUsageScenario";
     private static final String BLUEPRINT_ENTRY_LEVEL_SYSTEM_CALL = "WLCGBlueprint_blueprintEntryLevelSystemCall";
+    private static final String BLUEPRINT_USAGEMODEL_BRANCH_JOBTYPE = "branchUsageModelJobtype";
 
     // Used for holding model elements that are later needed to connect models
     private Map<String, OperationInterface> jobInterfaces = new HashMap<>();
@@ -235,42 +238,10 @@ public class PCMModelCompletion {
             StereotypeAPI.setTaggedValue(newNode, nodeType.getJobslots(), "MiddlewareHost", "capacity");
         }
 
-        // Complete Usage Model
-
+        // Load and complete the Usage Model
         Resource usageModelResource = resourceSet.getResource(modelsPath.appendSegment(USAGE_MODEL_FILENAME), true);
         UsageModel usageModel = (UsageModel) usageModelResource.getContents().get(0);
-
-        List<UsageScenario> usageScenarios = usageModel.getUsageScenario_UsageModel();
-        UsageScenario blueprintUsageScenario = findObjectWithId(usageScenarios, BLUEPRINT_USAGE_SCENARIO);
-
-        for (JobTypeDescription jobType : jobs) {
-            String jobTypeName = jobType.getTypeName();
-
-            UsageScenario newUsageScenario = EcoreUtil.copy(blueprintUsageScenario);
-            newUsageScenario.setEntityName("usage_scenario_" + jobTypeName);
-
-            EObject obj = findObjectWithIdRecursively(newUsageScenario, BLUEPRINT_ENTRY_LEVEL_SYSTEM_CALL);
-            EntryLevelSystemCall systemCall = null;
-            if (obj instanceof EntryLevelSystemCall) {
-                systemCall = (EntryLevelSystemCall) obj;
-            }
-
-            systemCall.setOperationSignature__EntryLevelSystemCall(jobSignatures.get(jobTypeName));
-            systemCall.setProvidedRole_EntryLevelSystemCall(providedRolesSystem.get(jobTypeName));
-
-            OpenWorkload workload = (OpenWorkload) newUsageScenario.getWorkload_UsageScenario();
-            PCMRandomVariable interarrivalTime = workload.getInterArrivalTime_OpenWorkload();
-            interarrivalTime.setSpecification(jobType.getInterarrivalStoEx());
-
-            // Change all IDs in new usage scenario structure
-            this.changeIds(newUsageScenario);
-
-            newUsageScenario.setUsageModel_UsageScenario(usageModel);
-        }
-
-        // Remove blueprint usage scenario from the usage model
-        // This is important to not alter the generated load profile.
-        blueprintUsageScenario.setUsageModel_UsageScenario(null);
+        completeUsageModel(usageModel, jobs);
 
         // Complete Allocation Model
 
@@ -288,6 +259,7 @@ public class PCMModelCompletion {
             context.setAllocation_AllocationContext(allocation);
         }
 
+        // Save all resources and models
         try {
             repositoryResource.save(null);
             systemResource.save(null);
@@ -378,6 +350,65 @@ public class PCMModelCompletion {
 
         // BasicComponent copyJob = EcoreUtil.copy(blueprintJob);
         // System.out.println("ID of copy: " + EcoreUtil.getID(copyJob));
+    }
+
+    public void completeUsageModel(UsageModel usageModel, List<JobTypeDescription> jobs) {
+
+        List<UsageScenario> usageScenarios = usageModel.getUsageScenario_UsageModel();
+        UsageScenario blueprintUsageScenario = findObjectWithId(usageScenarios, BLUEPRINT_USAGE_SCENARIO);
+
+        EObject jobtypeBranchObject = findObjectWithIdRecursively(blueprintUsageScenario,
+                BLUEPRINT_USAGEMODEL_BRANCH_JOBTYPE);
+        Branch jobtypeBranch = null;
+        if (jobtypeBranchObject instanceof Branch) {
+            jobtypeBranch = (Branch) jobtypeBranchObject;
+        }
+
+        if (jobtypeBranch == null) {
+            throw new IllegalArgumentException("Invalid Usage Model: Could not find job type branch!");
+        }
+
+        // ScenarioBehaviour behaviour =
+        // blueprintUsageScenario.getScenarioBehaviour_UsageScenario();
+        // List<AbstractUserAction> actions = behaviour.getActions_ScenarioBehaviour();
+        // Branch jobtypeBranch = findObjectWithId(actions,
+        // BLUEPRINT_USAGEMODEL_BRANCH_JOBTYPE);
+
+        // Blueprint only has one branch transition
+        BranchTransition blueprintTransition = jobtypeBranch.getBranchTransitions_Branch().get(0);
+
+        for (JobTypeDescription jobType : jobs) {
+            String jobTypeName = jobType.getTypeName();
+
+            BranchTransition newTransition = EcoreUtil.copy(blueprintTransition);
+
+            // Set correct branch probability
+            // TODO Maybe normalize the values here again in case of invalid JSON data?
+            newTransition.setBranchProbability(jobType.getRelativeFrequency());
+
+            ScenarioBehaviour blueprintBehaviour = blueprintTransition.getBranchedBehaviour_BranchTransition();
+            if (blueprintBehaviour == null) {
+                throwNewInvalidModelException("usage", "Could not find branched scenario behaviour!");
+            }
+
+            EObject systemCallObject = findObjectWithIdRecursively(newTransition, BLUEPRINT_ENTRY_LEVEL_SYSTEM_CALL);
+            EntryLevelSystemCall systemCall = null;
+            if (systemCallObject instanceof EntryLevelSystemCall) {
+                systemCall = (EntryLevelSystemCall) systemCallObject;
+            }
+
+            systemCall.setOperationSignature__EntryLevelSystemCall(jobSignatures.get(jobTypeName));
+            systemCall.setProvidedRole_EntryLevelSystemCall(providedRolesSystem.get(jobTypeName));
+
+            // In the end, change all IDs for the new branch transition
+            appendIDsRecursively(newTransition, jobTypeName);
+
+            newTransition.setBranch_BranchTransition(jobtypeBranch);
+        }
+
+        // Remove blueprint branch transition from the usage model.
+        // This is important to not alter the generated load profile.
+        blueprintTransition.setBranch_BranchTransition(null);
     }
 
     public void addMeasuringpointsAndMonitors(MeasuringPointRepository measuringPointRepo,
@@ -606,15 +637,8 @@ public class PCMModelCompletion {
         }
 
         T result = EcoreUtil.copy(object);
-        appendToID(result, suffix);
-
-        TreeIterator<EObject> i = result.eAllContents();
-        while (i.hasNext()) {
-            EObject obj = i.next();
-            appendToID(obj, suffix);
-        }
+        appendIDsRecursively(result, suffix);
         return result;
-
     }
 
     private void changeIds(EObject object) {
@@ -650,6 +674,21 @@ public class PCMModelCompletion {
         EcoreUtil.setID(object, originalID + suffix);
     }
 
+    private void appendIDsRecursively(EObject object, String suffix) {
+
+        if (object == null) {
+            return;
+        }
+
+        appendToID(object, suffix);
+
+        TreeIterator<EObject> i = object.eAllContents();
+        while (i.hasNext()) {
+            EObject obj = i.next();
+            appendToID(obj, suffix);
+        }
+    }
+
     private ParametricResourceDemand findParametricResourceDemand(EObject object) {
         if (object == null) {
             return null;
@@ -666,5 +705,10 @@ public class PCMModelCompletion {
 
         return null;
 
+    }
+
+    private void throwNewInvalidModelException(String affectedModel, String message) {
+        String failureMessage = MessageFormat.format("Invalid {0} model: {1}", affectedModel, message);
+        throw new IllegalArgumentException(failureMessage);
     }
 }
