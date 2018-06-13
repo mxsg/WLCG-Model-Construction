@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<monitorrepository:MonitorRepository xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:monitorrepository="http://palladiosimulator.org/MonitorRepository/1.0" xmlns:pcmmeasuringpoint="http://palladiosimulator.org/PCM/MeasuringPoint/1.0" id="_NUg_4GgGEeiGuOnjOGWMZQ" entityName="monitor">
-  <monitors id="_wZ4VMGgIEeiGuOnjOGWMZQ" entityName="Monitor Resource CPU">
+<monitorrepository:MonitorRepository xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:metricspec="http://palladiosimulator.org/MetricSpec/1.0" xmlns:monitorrepository="http://palladiosimulator.org/MonitorRepository/1.0" xmlns:pcmmeasuringpoint="http://palladiosimulator.org/PCM/MeasuringPoint/1.0" id="_NUg_4GgGEeiGuOnjOGWMZQ" entityName="monitor">
+  <monitors id="resourceMonitorCPU" entityName="Monitor Resource CPU">
+    <measurementSpecifications id="_HB4UEG8gEeiQrstnhjJBvA">
+      <metricDescription xsi:type="metricspec:NumericalBaseMetricDescription" href="pathmap://METRIC_SPEC_MODELS/models/commonMetrics.metricspec#_paDhIs7qEeOX_4BzImuHbA"/>
+      <processingType xsi:type="monitorrepository:FeedThrough" id="_HcaT828gEeiQrstnhjJBvA"/>
+    </measurementSpecifications>
     <measuringPoint xsi:type="pcmmeasuringpoint:ActiveResourceMeasuringPoint" href="measuringpoints.measuringpoint#//@measuringPoints.0"/>
   </monitors>
 </monitorrepository:MonitorRepository>

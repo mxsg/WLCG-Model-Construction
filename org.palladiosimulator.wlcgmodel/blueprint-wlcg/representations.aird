@@ -27,6 +27,7 @@
     <semanticResources>platform:/plugin/org.palladiosimulator.loadbalancingaction.catalog/profiles/MiddlewarePassiveResource.emfprofile_diagram</semanticResources>
     <semanticResources>platform:/plugin/org.palladiosimulator.loadbalancingaction.catalog/profiles/StaticResourceContainerLoadbalancing.emfprofile_diagram</semanticResources>
     <semanticResources>http://org.palladiosimulator/loadbalancingaction</semanticResources>
+    <semanticResources>pathmap://METRIC_SPEC_MODELS/models/commonMetrics.metricspec</semanticResources>
     <ownedViews xmi:type="viewpoint:DView" xmi:id="_yKJ_sGb6EeiZ7YhGqMXvDQ">
       <viewpoint xmi:type="description:Viewpoint" href="platform:/plugin/org.palladiosimulator.editors.sirius.resourceenvironment/description/resourceenvironment.odesign#//@ownedViewpoints[name='ResourceEnvironment']"/>
       <ownedRepresentationDescriptors xmi:type="viewpoint:DRepresentationDescriptor" xmi:id="_yLqbkGb6EeiZ7YhGqMXvDQ" name="ResourceEnvironment Diagram" repPath="#_yKPfQGb6EeiZ7YhGqMXvDQ">
