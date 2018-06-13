@@ -6,6 +6,7 @@ public class JobTypeDescription {
     private String cpuDemandStoEx = null;
     private String ioTimeStoEx = null;
     private String requiredJobslotsStoEx = null;
+    private double relativeFrequency = 0.0;
 
     public JobTypeDescription() {
     }
@@ -50,7 +51,16 @@ public class JobTypeDescription {
         this.requiredJobslotsStoEx = requiredJobslotsStoEx;
     }
 
+    public double getRelativeFrequency() {
+        return relativeFrequency;
+    }
+
+    public void setRelativeFrequency(double relativeFrequency) {
+        this.relativeFrequency = relativeFrequency;
+    }
+
     public String toString() {
         return "Job Type";
     }
+
 }

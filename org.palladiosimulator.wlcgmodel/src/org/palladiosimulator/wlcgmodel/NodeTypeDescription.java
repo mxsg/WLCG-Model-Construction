@@ -1,57 +1,58 @@
 package org.palladiosimulator.wlcgmodel;
 
 public class NodeTypeDescription {
-	
-	private String name = null;
-	private double computingRate = 0.0;
-	private int jobslots = 0;
-	private int cores = 0;
-	private int nodeCount = 0;
-	
-	public NodeTypeDescription() {}
 
-	public String getName() {
-		return name;
-	}
+    private String name = null;
+    private double computingRate = 0.0;
+    private int jobslots = 0;
+    private int cores = 0;
+    private int nodeCount = 0;
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public NodeTypeDescription() {
+    }
 
-	public double getComputingRate() {
-		return computingRate;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public void setComputingRate(double computingRate) {
-		this.computingRate = computingRate;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public int getJobslots() {
-		return jobslots;
-	}
+    public double getComputingRate() {
+        return computingRate;
+    }
 
-	public void setJobslots(int jobslots) {
-		this.jobslots = jobslots;
-	}
+    public void setComputingRate(double computingRate) {
+        this.computingRate = computingRate;
+    }
 
-	public int getCores() {
-		return cores;
-	}
+    public int getJobslots() {
+        return jobslots;
+    }
 
-	public void setCores(int cores) {
-		this.cores = cores;
-	}
+    public void setJobslots(int jobslots) {
+        this.jobslots = jobslots;
+    }
 
-	public int getNodeCount() {
-		return nodeCount;
-	}
+    public int getCores() {
+        return cores;
+    }
 
-	public void setNodeCount(int nodeCount) {
-		this.nodeCount = nodeCount;
-	}
-	
-	@Override
-	public String toString() {
-		return "Name: " + name + ", " + cores + " cores," + jobslots + " jobslots,"+ nodeCount + " machines";
-	}
+    public void setCores(int cores) {
+        this.cores = cores;
+    }
+
+    public int getNodeCount() {
+        return nodeCount;
+    }
+
+    public void setNodeCount(int nodeCount) {
+        this.nodeCount = nodeCount;
+    }
+
+    @Override
+    public String toString() {
+        return "Name: " + name + ", " + cores + " cores," + jobslots + " jobslots," + nodeCount + " machines";
+    }
 }
