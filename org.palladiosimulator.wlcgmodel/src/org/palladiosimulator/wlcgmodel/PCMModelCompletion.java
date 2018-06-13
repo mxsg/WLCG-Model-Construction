@@ -2,6 +2,7 @@ package org.palladiosimulator.wlcgmodel;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,7 +18,10 @@ import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.modelversioning.emfprofile.Stereotype;
 import org.palladiosimulator.commons.eclipseutils.FileHelper;
+import org.palladiosimulator.edp2.models.measuringpoint.MeasuringPointRepository;
 import org.palladiosimulator.mdsdprofiles.api.StereotypeAPI;
+import org.palladiosimulator.monitorrepository.Monitor;
+import org.palladiosimulator.monitorrepository.MonitorRepository;
 import org.palladiosimulator.pcm.allocation.Allocation;
 import org.palladiosimulator.pcm.allocation.AllocationContext;
 import org.palladiosimulator.pcm.allocation.AllocationFactory;
@@ -45,6 +49,8 @@ import org.palladiosimulator.pcm.usagemodel.EntryLevelSystemCall;
 import org.palladiosimulator.pcm.usagemodel.OpenWorkload;
 import org.palladiosimulator.pcm.usagemodel.UsageModel;
 import org.palladiosimulator.pcm.usagemodel.UsageScenario;
+import org.palladiosimulator.pcmmeasuringpoint.ActiveResourceMeasuringPoint;
+import org.palladiosimulator.pcmmeasuringpoint.PcmmeasuringpointFactory;
 
 public class PCMModelCompletion {
 
@@ -53,6 +59,9 @@ public class PCMModelCompletion {
     private static final String RESOURCE_ENVIRONMENT_MODEL_FILENAME = "nodes.resourceenvironment";
     private static final String ALLOCATION_MODEL_FILENAME = "newAllocation.allocation";
     private static final String USAGE_MODEL_FILENAME = "wlcg.usagemodel";
+    private static final String MONITOR_DIRECTORY_NAME = "monitor";
+    private static final String MEASURINGPOINT_REPOSITORY_FILENAME = "measuringpoints.measuringpoint";
+    private static final String MONITOR_REPOSITORY_FILENAME = "wlcg.monitorrepository";
 
     private static final String COMPUTE_JOB_COMPOSITE_COMPONENT_ID = "WLCGBlueprint_computeJobCompositeComponent";
     private static final String BLUEPRINT_JOB_COMPONENT_ID = "WLCGBlueprint_blueprintJobComponent";
@@ -66,6 +75,7 @@ public class PCMModelCompletion {
     private static final String BLUEPRINT_NODE = "WLCGBlueprint_blueprintNode";
     private static final String BLUEPRINT_CPU = "WLCGBlueprint_blueprintCPU";
     private static final String BLUEPRINT_HDD = "WLCGBlueprint_blueprintHDD";
+    private static final String BLUEPRINT_CPU_MONITOR = "resourceMonitorCPU";
 
     private static final String BLUEPRINT_USAGE_SCENARIO = "WLCGBlueprint_blueprintUsageScenario";
     private static final String BLUEPRINT_ENTRY_LEVEL_SYSTEM_CALL = "WLCGBlueprint_blueprintEntryLevelSystemCall";
@@ -94,6 +104,17 @@ public class PCMModelCompletion {
         // Complete repository model
 
         completeRepositoryModel(repository, jobs);
+
+        // Get monitor repositories
+        URI measuringpointPath = modelsPath.appendSegment(MONITOR_DIRECTORY_NAME)
+                .appendSegment(MEASURINGPOINT_REPOSITORY_FILENAME);
+        Resource measuringpointResource = resourceSet.getResource(measuringpointPath, true);
+        MeasuringPointRepository measuringPointRepo = (MeasuringPointRepository) measuringpointResource.getContents()
+                .get(0);
+
+        URI monitorPath = modelsPath.appendSegment(MONITOR_DIRECTORY_NAME).appendSegment(MONITOR_REPOSITORY_FILENAME);
+        Resource monitorResource = resourceSet.getResource(monitorPath, true);
+        MonitorRepository monitorRepo = (MonitorRepository) monitorResource.getContents().get(0);
 
         // Complete system model
 
@@ -159,6 +180,14 @@ public class PCMModelCompletion {
             throw new IllegalArgumentException("Invalid model blueprint, missing stereotypes on resource container!");
         }
 
+        // Find the original monitor from the monitoring repository
+        List<Monitor> allMonitors = monitorRepo.getMonitors();
+        Monitor blueprintCpuMonitor = findObjectWithId(allMonitors, BLUEPRINT_CPU_MONITOR);
+
+        if (blueprintCpuMonitor == null) {
+            throw new IllegalArgumentException("Invalid monitor repository, missing CPU resource monitor.");
+        }
+
         for (NodeTypeDescription nodeType : nodes) {
             String nodeTypeName = nodeType.getName();
 
@@ -178,6 +207,10 @@ public class PCMModelCompletion {
             processingRate.setSpecification(String.valueOf(nodeType.getComputingRate()));
 
             cpuResourceSpec.setProcessingRate_ProcessingResourceSpecification(processingRate);
+
+            // Add new measuring points for the new resource
+            addMeasuringpointsAndMonitors(measuringPointRepo, monitorRepo, cpuResourceSpec, blueprintCpuMonitor,
+                    nodeTypeName);
 
             // Do not forget to change all IDs for the copied objects
             changeIds(newNode);
@@ -261,6 +294,8 @@ public class PCMModelCompletion {
             resourceEnvironmentResource.save(null);
             usageModelResource.save(null);
             allocationModelResource.save(null);
+            measuringpointResource.save(null);
+            monitorResource.save(null);
         } catch (IOException e) {
             System.out.println("Error while saving resources, e: " + e);
         }
@@ -343,6 +378,35 @@ public class PCMModelCompletion {
 
         // BasicComponent copyJob = EcoreUtil.copy(blueprintJob);
         // System.out.println("ID of copy: " + EcoreUtil.getID(copyJob));
+    }
+
+    public void addMeasuringpointsAndMonitors(MeasuringPointRepository measuringPointRepo,
+            MonitorRepository monitorRepo, ProcessingResourceSpecification processingSpec, Monitor originalMonitor,
+            String additionalSuffix) {
+
+        int coreCount = processingSpec.getNumberOfReplicas();
+
+        // Add a new CPU measuring point for each core
+        for (int i = 0; i < coreCount; i++) {
+            ActiveResourceMeasuringPoint point = PcmmeasuringpointFactory.eINSTANCE
+                    .createActiveResourceMeasuringPoint();
+            point.setActiveResource(processingSpec);
+            point.setReplicaID(i);
+            point.setMeasuringPointRepository(measuringPointRepo);
+
+            // Add a monitor for each new measuring point
+            Monitor duplicatedMonitor = copyAppendIds(originalMonitor, "_" + additionalSuffix + "_core" + i);
+
+            duplicatedMonitor.setMeasuringPoint(point);
+            duplicatedMonitor.setMonitorRepository(monitorRepo);
+
+            String monitorName = MessageFormat.format("CPU Monitor {0} (core {1})", additionalSuffix, i);
+            duplicatedMonitor.setEntityName(monitorName);
+
+            // TODO Do not activate all monitors?
+            duplicatedMonitor.setActivated(false);
+        }
+
     }
 
     public BasicComponent buildAndAddJobComponentWithProvidedInterface(Repository repository,
@@ -520,7 +584,7 @@ public class PCMModelCompletion {
         T result = EcoreUtil.copy(object);
         EcoreUtil.setID(result, EcoreUtil.generateUUID());
 
-        TreeIterator<EObject> i = object.eAllContents();
+        TreeIterator<EObject> i = result.eAllContents();
         while (i.hasNext()) {
             EObject obj = i.next();
 
@@ -533,6 +597,24 @@ public class PCMModelCompletion {
             }
         }
         return result;
+    }
+
+    private <T extends EObject> T copyAppendIds(T object, String suffix) {
+
+        if (object == null) {
+            return null;
+        }
+
+        T result = EcoreUtil.copy(object);
+        appendToID(result, suffix);
+
+        TreeIterator<EObject> i = result.eAllContents();
+        while (i.hasNext()) {
+            EObject obj = i.next();
+            appendToID(obj, suffix);
+        }
+        return result;
+
     }
 
     private void changeIds(EObject object) {
@@ -551,6 +633,21 @@ public class PCMModelCompletion {
                 // Object does not have ID, do not reset
             }
         }
+    }
+
+    private void appendToID(EObject object, String suffix) {
+        String originalID = EcoreUtil.getID(object);
+
+        // If the original object had no ID, do nothing
+        if (originalID == null) {
+            return;
+        }
+
+        if (suffix == null) {
+            suffix = "";
+        }
+
+        EcoreUtil.setID(object, originalID + suffix);
     }
 
     private ParametricResourceDemand findParametricResourceDemand(EObject object) {
