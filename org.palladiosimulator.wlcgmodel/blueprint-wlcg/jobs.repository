@@ -31,7 +31,7 @@
   </repository:Repository>
   <emfprofileapplication:ProfileApplication>
     <stereotypeApplications xsi:type="org.palladiosimulator.loadbalancingaction.catalog.profiles:MiddlewareDependency" appliedTo="WLCGBlueprint_blueprintJobComponent">
-      <extension href="../../plugin/org.palladiosimulator.loadbalancingaction.catalog/profiles/MiddlewarePassiveResource.emfprofile_diagram#_UspYMEx0EeiYCe5Yu6fDjQ"/>
+      <extension href="platform:/plugin/org.palladiosimulator.loadbalancingaction.catalog/profiles/MiddlewarePassiveResource.emfprofile_diagram#_UspYMEx0EeiYCe5Yu6fDjQ"/>
     </stereotypeApplications>
     <importedProfiles nsURI="org.palladiosimulator.loadbalancingaction.catalog.profiles.middlewarepassiveresource" location="platform:/plugin/org.palladiosimulator.loadbalancingaction.catalog/profiles/MiddlewarePassiveResource.emfprofile_diagram"/>
   </emfprofileapplication:ProfileApplication>
