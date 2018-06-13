@@ -24,6 +24,7 @@
     <semanticResources>http://sdq.ipd.uka.de/StochasticExpressions/2.2</semanticResources>
     <semanticResources>http://sdq.ipd.uka.de/Identifier/2.1</semanticResources>
     <semanticResources>http://sdq.ipd.uka.de/Units/2.1</semanticResources>
+    <semanticResources>pathmap://METRIC_SPEC_MODELS/models/commonMetrics.metricspec</semanticResources>
     <ownedViews xmi:type="viewpoint:DView" xmi:id="_yKJ_sGb6EeiZ7YhGqMXvDQ">
       <viewpoint xmi:type="description:Viewpoint" href="platform:/plugin/org.palladiosimulator.editors.sirius.resourceenvironment/description/resourceenvironment.odesign#//@ownedViewpoints[name='ResourceEnvironment']"/>
       <ownedRepresentationDescriptors xmi:type="viewpoint:DRepresentationDescriptor" xmi:id="_yLqbkGb6EeiZ7YhGqMXvDQ" name="ResourceEnvironment Diagram" repPath="#_yKPfQGb6EeiZ7YhGqMXvDQ">
