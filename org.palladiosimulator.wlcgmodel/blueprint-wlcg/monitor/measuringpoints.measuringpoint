@@ -3,4 +3,10 @@
   <measuringPoints xsi:type="pcmmeasuringpoint:ActiveResourceMeasuringPoint" stringRepresentation="CPU [0] in blueprintNode" resourceURIRepresentation="platform:/resource/wlcg-blueprint/nodes.resourceenvironment#WLCGBlueprint_blueprintCPU">
     <activeResource href="../nodes.resourceenvironment#WLCGBlueprint_blueprintCPU"/>
   </measuringPoints>
+  <measuringPoints xsi:type="pcmmeasuringpoint:UsageScenarioMeasuringPoint" stringRepresentation="Usage Scenario: blueprintUsageScenario" resourceURIRepresentation="platform:/resource/wlcg-blueprint/wlcg.usagemodel#WLCGBlueprint_blueprintUsageScenario">
+    <usageScenario href="../wlcg.usagemodel#WLCGBlueprint_blueprintUsageScenario"/>
+  </measuringPoints>
+  <measuringPoints xsi:type="pcmmeasuringpoint:ResourceEnvironmentMeasuringPoint" stringRepresentation="Resource Environment: New ResourceEnvironment" resourceURIRepresentation="platform:/resource/wlcg-blueprint/nodes.resourceenvironment#/0">
+    <resourceEnvironment href="../nodes.resourceenvironment#/0"/>
+  </measuringPoints>
 </org.palladiosimulator.edp2.models:MeasuringPointRepository>

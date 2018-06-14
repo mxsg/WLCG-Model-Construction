@@ -7,4 +7,18 @@
     </measurementSpecifications>
     <measuringPoint xsi:type="pcmmeasuringpoint:ActiveResourceMeasuringPoint" href="measuringpoints.measuringpoint#//@measuringPoints.0"/>
   </monitors>
+  <monitors id="_ohUQIG-gEei9-onPMfV_cQ" entityName="Overall Response Time">
+    <measurementSpecifications id="_re40gG-gEei9-onPMfV_cQ">
+      <metricDescription xsi:type="metricspec:NumericalBaseMetricDescription" href="pathmap://METRIC_SPEC_MODELS/models/commonMetrics.metricspec#_6rYmYs7nEeOX_4BzImuHbA"/>
+      <processingType xsi:type="monitorrepository:FeedThrough" id="_yW5OJG-gEei9-onPMfV_cQ"/>
+    </measurementSpecifications>
+    <measuringPoint xsi:type="pcmmeasuringpoint:UsageScenarioMeasuringPoint" href="measuringpoints.measuringpoint#//@measuringPoints.1"/>
+  </monitors>
+  <monitors id="_1r2XwG-gEei9-onPMfV_cQ" entityName="Number of Nodes">
+    <measurementSpecifications id="_5TMR4G-gEei9-onPMfV_cQ">
+      <metricDescription xsi:type="metricspec:NumericalBaseMetricDescription" href="pathmap://METRIC_SPEC_MODELS/models/commonMetrics.metricspec#_e7x3gq-eEeSgL6DrxYuwZg"/>
+      <processingType xsi:type="monitorrepository:FeedThrough" id="_81NnJG-gEei9-onPMfV_cQ"/>
+    </measurementSpecifications>
+    <measuringPoint xsi:type="pcmmeasuringpoint:ResourceEnvironmentMeasuringPoint" href="measuringpoints.measuringpoint#//@measuringPoints.2"/>
+  </monitors>
 </monitorrepository:MonitorRepository>
