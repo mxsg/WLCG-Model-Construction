@@ -435,7 +435,7 @@ public class PCMModelCompletion {
             duplicatedMonitor.setEntityName(monitorName);
 
             // TODO Do not activate all monitors?
-            duplicatedMonitor.setActivated(false);
+            duplicatedMonitor.setActivated(true);
         }
 
     }
