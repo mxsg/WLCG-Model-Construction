@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 
 import org.eclipse.emf.common.util.TreeIterator;
 import org.eclipse.emf.common.util.URI;
@@ -45,9 +44,16 @@ import org.palladiosimulator.pcm.resourceenvironment.ResourceEnvironment;
 import org.palladiosimulator.pcm.seff.AbstractAction;
 import org.palladiosimulator.pcm.seff.BranchAction;
 import org.palladiosimulator.pcm.seff.ForkAction;
+import org.palladiosimulator.pcm.seff.ForkedBehaviour;
+import org.palladiosimulator.pcm.seff.GuardedBranchTransition;
 import org.palladiosimulator.pcm.seff.InternalAction;
+import org.palladiosimulator.pcm.seff.ResourceDemandingBehaviour;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
+import org.palladiosimulator.pcm.seff.SeffFactory;
 import org.palladiosimulator.pcm.seff.ServiceEffectSpecification;
+import org.palladiosimulator.pcm.seff.StartAction;
+import org.palladiosimulator.pcm.seff.StopAction;
+import org.palladiosimulator.pcm.seff.SynchronisationPoint;
 import org.palladiosimulator.pcm.seff.seff_performance.ParametricResourceDemand;
 import org.palladiosimulator.pcm.usagemodel.Branch;
 import org.palladiosimulator.pcm.usagemodel.BranchTransition;
@@ -72,16 +78,18 @@ public class PCMModelCompletion {
     private static final String COMPUTE_JOB_COMPOSITE_COMPONENT_ID = "WLCGBlueprint_computeJobCompositeComponent";
     private static final String BLUEPRINT_JOB_COMPONENT_ID = "WLCGBlueprint_blueprintJobComponent";
     private static final String BLUEPRINT_JOB_SEFF = "WLCGBlueprint_runBlueprintJobSEFF";
-    private static final String BLUEPRINT_JOB_SEFF_INTERNAL_ACTION = "WLCGBlueprint_runBlueprintJobSEFF_internalAction";
+    // private static final String BLUEPRINT_JOB_SEFF_INTERNAL_ACTION =
+    // "WLCGBlueprint_runBlueprintJobSEFF_internalAction";
     private static final String BLUEPRINT_JOB_CPU_ACTION = "WLCGBlueprint_runBlueprintJobSEFF_cpuAction";
     private static final String BLUEPRINT_JOB_IO_ACTION = "WLCGBlueprint_runBlueprintJobSEFF_ioAction";
     private static final String BLUEPRINT_JOB_FORK = "WLCGBlueprint_runBlueprintJobSEFF_forkAction";
 
-    private static final String BLUEPRINT_JOB_SEFF_INTERNAL_CPU_RESOURCE_TYPE = "WLCGBlueprint_runBlueprintJobSEFF_cpu_resourcetype";
+    // private static final String BLUEPRINT_JOB_SEFF_INTERNAL_CPU_RESOURCE_TYPE =
+    // "WLCGBlueprint_runBlueprintJobSEFF_cpu_resourcetype";
     private static final String COMPUTE_ASSEMBLY_CONTEXT_SYSTEM = "WLCGBlueprint_computeJobAssemblyContextSystem";
     private static final String BLUEPRINT_NODE = "WLCGBlueprint_blueprintNode";
     private static final String BLUEPRINT_CPU = "WLCGBlueprint_blueprintCPU";
-    private static final String BLUEPRINT_HDD = "WLCGBlueprint_blueprintHDD";
+    // private static final String BLUEPRINT_HDD = "WLCGBlueprint_blueprintHDD";
     private static final String BLUEPRINT_CPU_MONITOR = "resourceMonitorCPU";
 
     private static final String BLUEPRINT_USAGE_SCENARIO = "WLCGBlueprint_blueprintUsageScenario";
@@ -131,7 +139,7 @@ public class PCMModelCompletion {
                 .getContents().get(0);
 
         List<AssemblyContext> systemAssemblies = system.getAssemblyContexts__ComposedStructure();
-        AssemblyContext computeAssembly = (AssemblyContext) findObjectWithId(systemAssemblies,
+        AssemblyContext computeAssembly = (AssemblyContext) ModelConstructionUtils.findObjectWithId(systemAssemblies,
                 COMPUTE_ASSEMBLY_CONTEXT_SYSTEM);
 
         // Add for later use
@@ -167,7 +175,8 @@ public class PCMModelCompletion {
         ResourceEnvironment resEnv = (ResourceEnvironment) resourceEnvironmentResource.getContents().get(0);
 
         List<ResourceContainer> resourceContainers = resEnv.getResourceContainer_ResourceEnvironment();
-        ResourceContainer blueprintContainer = findObjectWithId(resourceContainers, BLUEPRINT_NODE);
+        ResourceContainer blueprintContainer = ModelConstructionUtils.findObjectWithId(resourceContainers,
+                BLUEPRINT_NODE);
 
         if (blueprintContainer == null) {
             throw new IllegalArgumentException(
@@ -190,7 +199,7 @@ public class PCMModelCompletion {
 
         // Find the original monitor from the monitoring repository
         List<Monitor> allMonitors = monitorRepo.getMonitors();
-        Monitor blueprintCpuMonitor = findObjectWithId(allMonitors, BLUEPRINT_CPU_MONITOR);
+        Monitor blueprintCpuMonitor = ModelConstructionUtils.findObjectWithId(allMonitors, BLUEPRINT_CPU_MONITOR);
 
         if (blueprintCpuMonitor == null) {
             throw new IllegalArgumentException("Invalid monitor repository, missing CPU resource monitor.");
@@ -206,7 +215,8 @@ public class PCMModelCompletion {
             List<ProcessingResourceSpecification> resourceSpecs = newNode
                     .getActiveResourceSpecifications_ResourceContainer();
 
-            ProcessingResourceSpecification cpuResourceSpec = findObjectWithId(resourceSpecs, BLUEPRINT_CPU);
+            ProcessingResourceSpecification cpuResourceSpec = ModelConstructionUtils.findObjectWithId(resourceSpecs,
+                    BLUEPRINT_CPU);
 
             // Set CPU properties
             cpuResourceSpec.setNumberOfReplicas(nodeType.getCores());
@@ -221,7 +231,7 @@ public class PCMModelCompletion {
                     nodeTypeName);
 
             // Do not forget to change all IDs for the copied objects
-            changeIds(newNode);
+            ModelConstructionUtils.changeIds(newNode);
 
             // Add new resource container to tracked resource containers
             this.resourceContainerTypes.add(newNode);
@@ -312,10 +322,11 @@ public class PCMModelCompletion {
         List<RepositoryComponent> components = repository.getComponents__Repository();
 
         // TODO include more checks for correct model structure
-        CompositeComponent computeJob = (CompositeComponent) findObjectWithId(components,
+        CompositeComponent computeJob = (CompositeComponent) ModelConstructionUtils.findObjectWithId(components,
                 COMPUTE_JOB_COMPOSITE_COMPONENT_ID);
 
-        BasicComponent blueprintJob = (BasicComponent) findObjectWithId(components, BLUEPRINT_JOB_COMPONENT_ID);
+        BasicComponent blueprintJob = (BasicComponent) ModelConstructionUtils.findObjectWithId(components,
+                BLUEPRINT_JOB_COMPONENT_ID);
         // System.out.println("Found basic Component: " +
         // EcoreUtil.getID(blueprintJob));
 
@@ -330,8 +341,8 @@ public class PCMModelCompletion {
             throw new IllegalArgumentException("Invalid model blueprint, missing middleware dependency stereotype!");
         }
 
-        ServiceEffectSpecification seff = findObjectWithId(
-                blueprintJob.getServiceEffectSpecifications__BasicComponent(), BLUEPRINT_JOB_SEFF);
+        ServiceEffectSpecification seff = ModelConstructionUtils
+                .findObjectWithId(blueprintJob.getServiceEffectSpecifications__BasicComponent(), BLUEPRINT_JOB_SEFF);
 
         // TODO Throw more meaningful exception to catch when calling this and notify
         // user about invalid model
@@ -356,9 +367,10 @@ public class PCMModelCompletion {
     public void completeUsageModel(UsageModel usageModel, List<JobTypeDescription> jobs) {
 
         List<UsageScenario> usageScenarios = usageModel.getUsageScenario_UsageModel();
-        UsageScenario blueprintUsageScenario = findObjectWithId(usageScenarios, BLUEPRINT_USAGE_SCENARIO);
+        UsageScenario blueprintUsageScenario = ModelConstructionUtils.findObjectWithId(usageScenarios,
+                BLUEPRINT_USAGE_SCENARIO);
 
-        EObject jobtypeBranchObject = findObjectWithIdRecursively(blueprintUsageScenario,
+        EObject jobtypeBranchObject = ModelConstructionUtils.findObjectWithIdRecursively(blueprintUsageScenario,
                 BLUEPRINT_USAGEMODEL_BRANCH_JOBTYPE);
         Branch jobtypeBranch = null;
         if (jobtypeBranchObject instanceof Branch) {
@@ -398,7 +410,8 @@ public class PCMModelCompletion {
                 throwNewInvalidModelException("usage", "Could not find branched scenario behaviour!");
             }
 
-            EObject systemCallObject = findObjectWithIdRecursively(newTransition, BLUEPRINT_ENTRY_LEVEL_SYSTEM_CALL);
+            EObject systemCallObject = ModelConstructionUtils.findObjectWithIdRecursively(newTransition,
+                    BLUEPRINT_ENTRY_LEVEL_SYSTEM_CALL);
             EntryLevelSystemCall systemCall = null;
             if (systemCallObject instanceof EntryLevelSystemCall) {
                 systemCall = (EntryLevelSystemCall) systemCallObject;
@@ -408,7 +421,7 @@ public class PCMModelCompletion {
             systemCall.setProvidedRole_EntryLevelSystemCall(providedRolesSystem.get(jobTypeName));
 
             // In the end, change all IDs for the new branch transition
-            appendIDsRecursively(newTransition, jobTypeName);
+            ModelConstructionUtils.appendIDsRecursively(newTransition, jobTypeName);
 
             newTransition.setBranch_BranchTransition(jobtypeBranch);
         }
@@ -433,7 +446,8 @@ public class PCMModelCompletion {
             point.setMeasuringPointRepository(measuringPointRepo);
 
             // Add a monitor for each new measuring point
-            Monitor duplicatedMonitor = copyAppendIds(originalMonitor, "_" + additionalSuffix + "_core" + i);
+            Monitor duplicatedMonitor = ModelConstructionUtils.copyAppendIds(originalMonitor,
+                    "_" + additionalSuffix + "_core" + i);
 
             duplicatedMonitor.setMeasuringPoint(point);
             duplicatedMonitor.setMonitorRepository(monitorRepo);
@@ -498,7 +512,7 @@ public class PCMModelCompletion {
         ResourceDemandingSEFF seff = EcoreUtil.copy(blueprintSeff);
 
         ForkAction forkAction = null;
-        EObject forkObject = findObjectWithIdRecursively(seff, BLUEPRINT_JOB_FORK);
+        EObject forkObject = ModelConstructionUtils.findObjectWithIdRecursively(seff, BLUEPRINT_JOB_FORK);
         if (forkObject instanceof ForkAction) {
             forkAction = (ForkAction) forkObject;
         }
@@ -507,7 +521,7 @@ public class PCMModelCompletion {
             throwNewInvalidModelException("Repository", "Could not find fork action in job RDSEFF.");
         }
 
-        appendIDsRecursively(seff, "_" + jobTypeName);
+        ModelConstructionUtils.appendIDsRecursively(seff, "_" + jobTypeName);
 
         AbstractAction predecessorAction = forkAction.getPredecessor_AbstractAction();
         AbstractAction successorAction = forkAction.getSuccessor_AbstractAction();
@@ -516,7 +530,7 @@ public class PCMModelCompletion {
         forkAction.setResourceDemandingBehaviour_AbstractAction(null);
 
         // TODO Factor out strings
-        BranchAction branch = ModelConstructionUtils.duplicateBehaviours(forkAction, "NUMBER_REQUIRED_RESOURCES", 8);
+        BranchAction branch = duplicateBehaviours(forkAction, "NUMBER_REQUIRED_RESOURCES", 8);
         branch.setResourceDemandingBehaviour_AbstractAction(seff);
 
         branch.setPredecessor_AbstractAction(predecessorAction);
@@ -577,12 +591,12 @@ public class PCMModelCompletion {
         InternalAction cpuDemandAction = null;
         InternalAction ioDemandAction = null;
 
-        EObject actionObject = findObjectWithIdRecursively(newSeff, BLUEPRINT_JOB_CPU_ACTION);
+        EObject actionObject = ModelConstructionUtils.findObjectWithIdRecursively(newSeff, BLUEPRINT_JOB_CPU_ACTION);
         if (actionObject instanceof InternalAction) {
             cpuDemandAction = (InternalAction) actionObject;
         }
 
-        actionObject = findObjectWithIdRecursively(newSeff, BLUEPRINT_JOB_IO_ACTION);
+        actionObject = ModelConstructionUtils.findObjectWithIdRecursively(newSeff, BLUEPRINT_JOB_IO_ACTION);
         if (actionObject instanceof InternalAction) {
             ioDemandAction = (InternalAction) actionObject;
         }
@@ -607,134 +621,71 @@ public class PCMModelCompletion {
         ioDemand.setSpecification_ParametericResourceDemand(ioVar);
 
         // Change IDs to prevent conflicts
-        changeIds(newSeff);
+        ModelConstructionUtils.changeIds(newSeff);
 
         return newSeff;
     }
 
-    /**
-     * Find the object with known ID in the list, return null if there is no such
-     * object.
-     * 
-     * @param objects
-     * @param id
-     */
-    private <T extends EObject> T findObjectWithId(List<T> objects, String id) {
-        try {
-            return objects.stream().filter(obj -> EcoreUtil.getID(obj).contentEquals(id)).findAny().get();
-        } catch (NoSuchElementException e) {
-            // Could not find matching element
-            return null;
-        }
-    }
+    public static BranchAction duplicateBehaviours(ForkAction containingAction, String duplicationCountParameterName,
+            int maxThreads) {
 
-    /**
-     * Find the object with know ID in all objects contained in the passed object,
-     * null if there is no such object.
-     * 
-     * @param object
-     * @param id
-     * @return
-     */
-    private EObject findObjectWithIdRecursively(EObject object, String id) {
+        ForkAction localContainingAction = ModelConstructionUtils.copyChangeIds(containingAction);
 
-        if (id == null) {
-            return null;
-        }
+        BranchAction branchResult = SeffFactory.eINSTANCE.createBranchAction();
 
-        TreeIterator<EObject> i = object.eAllContents();
-        while (i.hasNext()) {
-            EObject obj = i.next();
+        for (int i = 1; i <= maxThreads; i++) {
+            ForkAction newFork = ModelConstructionUtils.copyAppendIds(localContainingAction, "_threadcount_" + i);
 
-            String objId = EcoreUtil.getID(obj);
-
-            if (id.equals(objId)) {
-                return obj;
+            SynchronisationPoint syncPoint = newFork.getSynchronisingBehaviours_ForkAction();
+            if (syncPoint == null) {
+                throw new IllegalArgumentException("ForkAction must have synchronized behaviours.");
             }
-        }
-        return null;
-    }
 
-    private <T extends EObject> T copyChangeIds(T object) {
-
-        // TODO This should return a deep copy including all containment references, is
-        // this accurate?
-        // TODO Maybe try this in a smaller setting to check?
-        T result = EcoreUtil.copy(object);
-        EcoreUtil.setID(result, EcoreUtil.generateUUID());
-
-        TreeIterator<EObject> i = result.eAllContents();
-        while (i.hasNext()) {
-            EObject obj = i.next();
-
-            // Reset all IDs for contained objects that have IDs
-            // Todo What is the clean way to do this?
-            try {
-                EcoreUtil.setID(obj, EcoreUtil.generateUUID());
-            } catch (IllegalArgumentException e) {
-                // Object does not have ID, do not reset
+            // TODO Check for sanity of the containing action.
+            List<ForkedBehaviour> behaviourList = syncPoint.getSynchronousForkedBehaviours_SynchronisationPoint();
+            if (behaviourList.size() < 1) {
+                throw new IllegalArgumentException("No synchronized behaviours found.");
             }
-        }
-        return result;
-    }
 
-    private <T extends EObject> T copyAppendIds(T object, String suffix) {
+            ForkedBehaviour blueprintBehaviour = behaviourList.get(0);
 
-        if (object == null) {
-            return null;
-        }
-
-        T result = EcoreUtil.copy(object);
-        appendIDsRecursively(result, suffix);
-        return result;
-    }
-
-    private void changeIds(EObject object) {
-        // Change the ID of the object itself
-        EcoreUtil.setID(object, EcoreUtil.generateUUID());
-
-        TreeIterator<EObject> i = object.eAllContents();
-        while (i.hasNext()) {
-            EObject obj = i.next();
-
-            // Reset all IDs for contained objects that have IDs
-            // Todo What is the clean way to do this?
-            try {
-                EcoreUtil.setID(obj, EcoreUtil.generateUUID());
-            } catch (IllegalArgumentException e) {
-                // Object does not have ID, do not reset
+            for (int j = 2; j <= i; j++) {
+                ForkedBehaviour newBehaviour = ModelConstructionUtils.copyAppendIds(blueprintBehaviour, "_thread_" + j);
+                newBehaviour.setSynchronisationPoint_ForkedBehaviour(syncPoint);
             }
+
+            PCMRandomVariable branchCondition = CoreFactory.eINSTANCE.createPCMRandomVariable();
+            branchCondition.setSpecification(duplicationCountParameterName + ".VALUE == " + i);
+
+            GuardedBranchTransition transition = SeffFactory.eINSTANCE.createGuardedBranchTransition();
+            transition.setBranchCondition_GuardedBranchTransition(branchCondition);
+            transition.setEntityName("transition_run_with_" + i + "cores");
+
+            // Create behaviour for inside of the branched paths
+            ResourceDemandingBehaviour behaviour = SeffFactory.eINSTANCE.createResourceDemandingBehaviour();
+
+            StartAction start = SeffFactory.eINSTANCE.createStartAction();
+            start.setEntityName("startAction in Branch Transition, core count:" + i);
+            StopAction stop = SeffFactory.eINSTANCE.createStopAction();
+
+            transition.setBranchBehaviour_BranchTransition(behaviour);
+            transition.setBranchAction_AbstractBranchTransition(branchResult);
+
+            // Add actions to behaviour
+            start.setResourceDemandingBehaviour_AbstractAction(behaviour);
+            newFork.setResourceDemandingBehaviour_AbstractAction(behaviour);
+            stop.setResourceDemandingBehaviour_AbstractAction(behaviour);
+
+            // Create correct behaviour control flow
+            start.setSuccessor_AbstractAction(newFork);
+
+            newFork.setPredecessor_AbstractAction(start);
+            newFork.setSuccessor_AbstractAction(stop);
+
+            stop.setPredecessor_AbstractAction(newFork);
         }
-    }
 
-    private void appendToID(EObject object, String suffix) {
-        String originalID = EcoreUtil.getID(object);
-
-        // If the original object had no ID, do nothing
-        if (originalID == null) {
-            return;
-        }
-
-        if (suffix == null) {
-            suffix = "";
-        }
-
-        EcoreUtil.setID(object, originalID + suffix);
-    }
-
-    private void appendIDsRecursively(EObject object, String suffix) {
-
-        if (object == null) {
-            return;
-        }
-
-        appendToID(object, suffix);
-
-        TreeIterator<EObject> i = object.eAllContents();
-        while (i.hasNext()) {
-            EObject obj = i.next();
-            appendToID(obj, suffix);
-        }
+        return branchResult;
     }
 
     private ParametricResourceDemand findParametricResourceDemand(EObject object) {
