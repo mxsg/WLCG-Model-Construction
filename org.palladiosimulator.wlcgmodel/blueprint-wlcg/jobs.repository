@@ -1,22 +1,55 @@
 <?xml version="1.0" encoding="ASCII"?>
-<xmi:XMI xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:composition="http://palladiosimulator.org/PalladioComponentModel/Core/Composition/5.2" xmlns:emfprofileapplication="http://www.modelversioning.org/emfprofile/application/1.1" xmlns:org.palladiosimulator.loadbalancingaction.catalog.profiles="org.palladiosimulator.loadbalancingaction.catalog.profiles.middlewarepassiveresource" xmlns:repository="http://palladiosimulator.org/PalladioComponentModel/Repository/5.2" xmlns:seff="http://palladiosimulator.org/PalladioComponentModel/SEFF/5.2">
+<xmi:XMI xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:composition="http://palladiosimulator.org/PalladioComponentModel/Core/Composition/5.2" xmlns:emfprofileapplication="http://www.modelversioning.org/emfprofile/application/1.1" xmlns:org.palladiosimulator.loadbalancingaction.catalog.profiles="org.palladiosimulator.loadbalancingaction.catalog.profiles.middlewarepassiveresource" xmlns:repository="http://palladiosimulator.org/PalladioComponentModel/Repository/5.2" xmlns:seff="http://palladiosimulator.org/PalladioComponentModel/SEFF/5.2" xmlns:stoex="http://sdq.ipd.uka.de/StochasticExpressions/2.2">
   <repository:Repository id="_6967YGb6EeiZ7YhGqMXvDQ" entityName="jobsRepository">
     <components__Repository xsi:type="repository:BasicComponent" id="WLCGBlueprint_blueprintJobComponent" entityName="jobBlueprint">
       <providedRoles_InterfaceProvidingEntity xsi:type="repository:OperationProvidedRole" id="_8nbaYGb7EeiZ7YhGqMXvDQ" entityName="blueprintBasicProvidedRole" providedInterface__OperationProvidedRole="_oMJpAGb7EeiZ7YhGqMXvDQ"/>
+      <componentParameterUsage_ImplementationComponentType>
+        <variableCharacterisation_VariableUsage type="VALUE">
+          <specification_VariableCharacterisation specification="0.0"/>
+        </variableCharacterisation_VariableUsage>
+        <namedReference__VariableUsage xsi:type="stoex:VariableReference" referenceName="CPU_DEMAND"/>
+      </componentParameterUsage_ImplementationComponentType>
+      <componentParameterUsage_ImplementationComponentType>
+        <variableCharacterisation_VariableUsage type="VALUE">
+          <specification_VariableCharacterisation specification="0.0"/>
+        </variableCharacterisation_VariableUsage>
+        <namedReference__VariableUsage xsi:type="stoex:VariableReference" referenceName="IO_DEMAND"/>
+      </componentParameterUsage_ImplementationComponentType>
+      <componentParameterUsage_ImplementationComponentType>
+        <variableCharacterisation_VariableUsage type="VALUE">
+          <specification_VariableCharacterisation specification="10"/>
+        </variableCharacterisation_VariableUsage>
+        <namedReference__VariableUsage xsi:type="stoex:VariableReference" referenceName="RESOURCE_DEMAND_ROUNDS"/>
+      </componentParameterUsage_ImplementationComponentType>
       <serviceEffectSpecifications__BasicComponent xsi:type="seff:ResourceDemandingSEFF" id="WLCGBlueprint_runBlueprintJobSEFF" describedService__SEFF="_pvENQGb7EeiZ7YhGqMXvDQ">
-        <steps_Behaviour xsi:type="seff:StartAction" id="_8nx_sWb7EeiZ7YhGqMXvDQ" successor_AbstractAction="WLCGBlueprint_runBlueprintJobSEFF_ioAction"/>
-        <steps_Behaviour xsi:type="seff:StopAction" id="_8nx_smb7EeiZ7YhGqMXvDQ" predecessor_AbstractAction="WLCGBlueprint_runBlueprintJobSEFF_cpuAction"/>
-        <steps_Behaviour xsi:type="seff:InternalAction" id="WLCGBlueprint_runBlueprintJobSEFF_cpuAction" entityName="processingAction" predecessor_AbstractAction="WLCGBlueprint_runBlueprintJobSEFF_ioAction" successor_AbstractAction="_8nx_smb7EeiZ7YhGqMXvDQ">
-          <resourceDemand_Action>
-            <specification_ParametericResourceDemand specification="0.0"/>
-            <requiredResource_ParametricResourceDemand href="pathmap://PCM_MODELS/Palladio.resourcetype#_oro4gG3fEdy4YaaT-RYrLQ"/>
-          </resourceDemand_Action>
-        </steps_Behaviour>
-        <steps_Behaviour xsi:type="seff:InternalAction" id="WLCGBlueprint_runBlueprintJobSEFF_ioAction" entityName="ioAction" predecessor_AbstractAction="_8nx_sWb7EeiZ7YhGqMXvDQ" successor_AbstractAction="WLCGBlueprint_runBlueprintJobSEFF_cpuAction">
-          <resourceDemand_Action>
-            <specification_ParametericResourceDemand specification="0.0"/>
-            <requiredResource_ParametricResourceDemand href="pathmap://PCM_MODELS/Palladio.resourcetype#_BIjHoQ3KEdyouMqirZIhzQ"/>
-          </resourceDemand_Action>
+        <steps_Behaviour xsi:type="seff:StartAction" id="_8nx_sWb7EeiZ7YhGqMXvDQ" successor_AbstractAction="WLCGBlueprint_runBlueprintJobSEFF_forkAction"/>
+        <steps_Behaviour xsi:type="seff:StopAction" id="_8nx_smb7EeiZ7YhGqMXvDQ" predecessor_AbstractAction="WLCGBlueprint_runBlueprintJobSEFF_forkAction"/>
+        <steps_Behaviour xsi:type="seff:ForkAction" id="WLCGBlueprint_runBlueprintJobSEFF_forkAction" entityName="concurrentResourceDemands" predecessor_AbstractAction="_8nx_sWb7EeiZ7YhGqMXvDQ" successor_AbstractAction="_8nx_smb7EeiZ7YhGqMXvDQ">
+          <synchronisingBehaviours_ForkAction id="_pZ8XsHIFEeiravDfpTP6YQ">
+            <synchronousForkedBehaviours_SynchronisationPoint id="_Q7H4YHIFEeiravDfpTP6YQ">
+              <steps_Behaviour xsi:type="seff:StartAction" id="_G7dp8XIIEeiravDfpTP6YQ" successor_AbstractAction="_hv3EQHIuEeikp-o7yZO_5A"/>
+              <steps_Behaviour xsi:type="seff:StopAction" id="_G7eRAHIIEeiravDfpTP6YQ" predecessor_AbstractAction="_hv3EQHIuEeikp-o7yZO_5A"/>
+              <steps_Behaviour xsi:type="seff:LoopAction" id="_hv3EQHIuEeikp-o7yZO_5A" entityName="LoopAction1" predecessor_AbstractAction="_G7dp8XIIEeiravDfpTP6YQ" successor_AbstractAction="_G7eRAHIIEeiravDfpTP6YQ">
+                <bodyBehaviour_Loop id="_hv4SYHIuEeikp-o7yZO_5A">
+                  <steps_Behaviour xsi:type="seff:StartAction" id="_hv4SYXIuEeikp-o7yZO_5A" successor_AbstractAction="WLCGBlueprint_runBlueprintJobSEFF_ioAction"/>
+                  <steps_Behaviour xsi:type="seff:StopAction" id="_hv4SYnIuEeikp-o7yZO_5A" predecessor_AbstractAction="WLCGBlueprint_runBlueprintJobSEFF_cpuAction"/>
+                  <steps_Behaviour xsi:type="seff:InternalAction" id="WLCGBlueprint_runBlueprintJobSEFF_cpuAction" entityName="processingAction" predecessor_AbstractAction="WLCGBlueprint_runBlueprintJobSEFF_ioAction" successor_AbstractAction="_hv4SYnIuEeikp-o7yZO_5A">
+                    <resourceDemand_Action>
+                      <specification_ParametericResourceDemand specification="(CPU_DEMAND.VALUE / NUMBER_REQUIRED_RESOURCES.VALUE) / RESOURCE_DEMAND_ROUNDS.VALUE"/>
+                      <requiredResource_ParametricResourceDemand href="pathmap://PCM_MODELS/Palladio.resourcetype#_oro4gG3fEdy4YaaT-RYrLQ"/>
+                    </resourceDemand_Action>
+                  </steps_Behaviour>
+                  <steps_Behaviour xsi:type="seff:InternalAction" id="WLCGBlueprint_runBlueprintJobSEFF_ioAction" entityName="ioAction" predecessor_AbstractAction="_hv4SYXIuEeikp-o7yZO_5A" successor_AbstractAction="WLCGBlueprint_runBlueprintJobSEFF_cpuAction">
+                    <resourceDemand_Action>
+                      <specification_ParametericResourceDemand specification="(IO_DEMAND.VALUE / NUMBER_REQUIRED_RESOURCES.VALUE) / RESOURCE_DEMAND_ROUNDS.VALUE"/>
+                      <requiredResource_ParametricResourceDemand href="pathmap://PCM_MODELS/Palladio.resourcetype#_BIjHoQ3KEdyouMqirZIhzQ"/>
+                    </resourceDemand_Action>
+                  </steps_Behaviour>
+                </bodyBehaviour_Loop>
+                <iterationCount_LoopAction specification="RESOURCE_DEMAND_ROUNDS.VALUE"/>
+              </steps_Behaviour>
+            </synchronousForkedBehaviours_SynchronisationPoint>
+          </synchronisingBehaviours_ForkAction>
         </steps_Behaviour>
       </serviceEffectSpecifications__BasicComponent>
     </components__Repository>
