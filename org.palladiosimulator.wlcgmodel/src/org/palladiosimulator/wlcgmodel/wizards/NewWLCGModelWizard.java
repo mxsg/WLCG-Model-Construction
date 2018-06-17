@@ -288,7 +288,7 @@ public class NewWLCGModelWizard extends Wizard implements INewWizard {
     }
     
     private static URI computeBlueprintPath() {
-        return URI.createURI(Config.MODEL_BLUEPRINTS_FOLDER);
+        return URI.createURI(Config.MODEL_BLUEPRINTS_DIRECTORY);
     }
     
     private static URI computeParameterPath() {

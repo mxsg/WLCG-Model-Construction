@@ -2,7 +2,7 @@ package org.palladiosimulator.wlcgmodel;
 
 public class Config {
     
-    public static final String MODEL_BLUEPRINTS_FOLDER = "platform:/plugin/org.palladiosimulator.wlcgmodel/blueprint-wlcg";
+    public static final String MODEL_BLUEPRINTS_DIRECTORY = "platform:/plugin/org.palladiosimulator.wlcgmodel/blueprint-wlcg";
     
     // Default values for the parameter files
     // TODO Make this configurable or selectable in the UI

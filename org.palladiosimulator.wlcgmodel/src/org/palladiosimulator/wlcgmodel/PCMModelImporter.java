@@ -127,7 +127,7 @@ public class PCMModelImporter {
     }
 
     private static URI computeBlueprintPath() {
-        return URI.createURI(Config.MODEL_BLUEPRINTS_FOLDER);
+        return URI.createURI(Config.MODEL_BLUEPRINTS_DIRECTORY);
     }
 
     /**
