@@ -30,6 +30,7 @@ import org.palladiosimulator.pcm.core.PCMRandomVariable;
 import org.palladiosimulator.pcm.core.composition.AssemblyContext;
 import org.palladiosimulator.pcm.core.composition.CompositionFactory;
 import org.palladiosimulator.pcm.core.composition.ProvidedDelegationConnector;
+import org.palladiosimulator.pcm.parameter.VariableUsage;
 import org.palladiosimulator.pcm.repository.BasicComponent;
 import org.palladiosimulator.pcm.repository.CompositeComponent;
 import org.palladiosimulator.pcm.repository.OperationInterface;
@@ -41,6 +42,9 @@ import org.palladiosimulator.pcm.repository.RepositoryFactory;
 import org.palladiosimulator.pcm.resourceenvironment.ProcessingResourceSpecification;
 import org.palladiosimulator.pcm.resourceenvironment.ResourceContainer;
 import org.palladiosimulator.pcm.resourceenvironment.ResourceEnvironment;
+import org.palladiosimulator.pcm.seff.AbstractAction;
+import org.palladiosimulator.pcm.seff.BranchAction;
+import org.palladiosimulator.pcm.seff.ForkAction;
 import org.palladiosimulator.pcm.seff.InternalAction;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 import org.palladiosimulator.pcm.seff.ServiceEffectSpecification;
@@ -71,6 +75,7 @@ public class PCMModelCompletion {
     private static final String BLUEPRINT_JOB_SEFF_INTERNAL_ACTION = "WLCGBlueprint_runBlueprintJobSEFF_internalAction";
     private static final String BLUEPRINT_JOB_CPU_ACTION = "WLCGBlueprint_runBlueprintJobSEFF_cpuAction";
     private static final String BLUEPRINT_JOB_IO_ACTION = "WLCGBlueprint_runBlueprintJobSEFF_ioAction";
+    private static final String BLUEPRINT_JOB_FORK = "WLCGBlueprint_runBlueprintJobSEFF_forkAction";
 
     private static final String BLUEPRINT_JOB_SEFF_INTERNAL_CPU_RESOURCE_TYPE = "WLCGBlueprint_runBlueprintJobSEFF_cpu_resourcetype";
     private static final String COMPUTE_ASSEMBLY_CONTEXT_SYSTEM = "WLCGBlueprint_computeJobAssemblyContextSystem";
@@ -305,10 +310,6 @@ public class PCMModelCompletion {
     public void completeRepositoryModel(Repository repository, List<JobTypeDescription> jobTypes) {
 
         List<RepositoryComponent> components = repository.getComponents__Repository();
-        for (RepositoryComponent component : components) {
-            System.out.println("Component found: " + component.getId());
-            System.out.println("Component with name: " + component.getEntityName());
-        }
 
         // TODO include more checks for correct model structure
         CompositeComponent computeJob = (CompositeComponent) findObjectWithId(components,
@@ -375,7 +376,13 @@ public class PCMModelCompletion {
         // BLUEPRINT_USAGEMODEL_BRANCH_JOBTYPE);
 
         // Blueprint only has one branch transition
-        BranchTransition blueprintTransition = jobtypeBranch.getBranchTransitions_Branch().get(0);
+        BranchTransition blueprintTransition = null;
+        List<BranchTransition> blueprintTransitionList = jobtypeBranch.getBranchTransitions_Branch();
+
+        if (blueprintTransitionList.size() < 1) {
+            throwNewInvalidModelException("Usage Model", "Could not find branch transition.");
+        }
+        blueprintTransition = blueprintTransitionList.get(0);
 
         for (JobTypeDescription jobType : jobs) {
             String jobTypeName = jobType.getTypeName();
@@ -453,8 +460,6 @@ public class PCMModelCompletion {
 
         StereotypeAPI.applyStereotype(component, stereotypeToApply);
 
-        // TODO Replace this with the real resource demand StoEx for the number of
-        // required job slots
         StereotypeAPI.setTaggedValue(component, jobType.getRequiredJobslotsStoEx(), "MiddlewareDependency",
                 "numberRequiredResources");
 
@@ -486,11 +491,54 @@ public class PCMModelCompletion {
         // Add the provided role to the component
         component.getProvidedRoles_InterfaceProvidingEntity().add(opProvidedRole);
 
-        ResourceDemandingSEFF seff = buildJobSEFF(blueprintSeff, jobTypeName, jobType);
+        // ResourceDemandingSEFF seff = buildJobSEFF(blueprintSeff, jobTypeName,
+        // jobType);
+        // seff.setDescribedService__SEFF(jobInterfaceSignature);
+
+        ResourceDemandingSEFF seff = EcoreUtil.copy(blueprintSeff);
+
+        ForkAction forkAction = null;
+        EObject forkObject = findObjectWithIdRecursively(seff, BLUEPRINT_JOB_FORK);
+        if (forkObject instanceof ForkAction) {
+            forkAction = (ForkAction) forkObject;
+        }
+
+        if (forkAction == null) {
+            throwNewInvalidModelException("Repository", "Could not find fork action in job RDSEFF.");
+        }
+
+        appendIDsRecursively(seff, "_" + jobTypeName);
+
+        AbstractAction predecessorAction = forkAction.getPredecessor_AbstractAction();
+        AbstractAction successorAction = forkAction.getSuccessor_AbstractAction();
+
+        // Remove fork from SEFF
+        forkAction.setResourceDemandingBehaviour_AbstractAction(null);
+
+        // TODO Factor out strings
+        BranchAction branch = ModelConstructionUtils.duplicateBehaviours(forkAction, "NUMBER_REQUIRED_RESOURCES", 8);
+        branch.setResourceDemandingBehaviour_AbstractAction(seff);
+
+        branch.setPredecessor_AbstractAction(predecessorAction);
+        branch.setSuccessor_AbstractAction(successorAction);
+
         seff.setDescribedService__SEFF(jobInterfaceSignature);
 
         // Add SEFF to component
         component.getServiceEffectSpecifications__BasicComponent().add(seff);
+
+        // Add variables to component
+        VariableUsage cpuVariableUsage = ModelConstructionUtils.createVariableUsageWithValue("CPU_DEMAND",
+                jobType.getCpuDemandStoEx());
+        component.getComponentParameterUsage_ImplementationComponentType().add(cpuVariableUsage);
+
+        VariableUsage ioVariableUsage = ModelConstructionUtils.createVariableUsageWithValue("IO_DEMAND",
+                jobType.getIoTimeStoEx());
+        component.getComponentParameterUsage_ImplementationComponentType().add(ioVariableUsage);
+
+        VariableUsage resourceDemandRounds = ModelConstructionUtils
+                .createVariableUsageWithValue("RESOURCE_DEMAND_ROUNDS", Integer.toString(10));
+        component.getComponentParameterUsage_ImplementationComponentType().add(resourceDemandRounds);
 
         // Add component to repository
         repository.getComponents__Repository().add(component);
