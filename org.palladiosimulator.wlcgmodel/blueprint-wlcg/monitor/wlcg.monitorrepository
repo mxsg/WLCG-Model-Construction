@@ -21,4 +21,10 @@
     </measurementSpecifications>
     <measuringPoint xsi:type="pcmmeasuringpoint:ResourceEnvironmentMeasuringPoint" href="measuringpoints.measuringpoint#//@measuringPoints.2"/>
   </monitors>
+  <monitors id="responseTimeTypeMonitor" entityName="Response Time by Type" activated="false">
+    <measurementSpecifications id="_kx88AHLNEeiuaOBzxc7lFQ">
+      <metricDescription xsi:type="metricspec:NumericalBaseMetricDescription" href="pathmap://METRIC_SPEC_MODELS/models/commonMetrics.metricspec#_6rYmYs7nEeOX_4BzImuHbA"/>
+      <processingType xsi:type="monitorrepository:FeedThrough" id="_lFQShHLNEeiuaOBzxc7lFQ"/>
+    </measurementSpecifications>
+  </monitors>
 </monitorrepository:MonitorRepository>
