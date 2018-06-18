@@ -588,9 +588,9 @@ public class PCMModelCompletion {
                 jobType.getCpuDemandStoEx());
         component.getComponentParameterUsage_ImplementationComponentType().add(cpuVariableUsage);
 
-        VariableUsage ioVariableUsage = ModelConstructionUtils.createVariableUsageWithValue("IO_DEMAND",
-                jobType.getIoTimeStoEx());
-        component.getComponentParameterUsage_ImplementationComponentType().add(ioVariableUsage);
+        VariableUsage ioTimeRatioUsage = ModelConstructionUtils.createVariableUsageWithValue("IO_RATIO",
+                jobType.getIoTimeRatioStoEx());
+        component.getComponentParameterUsage_ImplementationComponentType().add(ioTimeRatioUsage);
 
         VariableUsage resourceDemandRounds = ModelConstructionUtils
                 .createVariableUsageWithValue("RESOURCE_DEMAND_ROUNDS", Integer.toString(10));
@@ -603,6 +603,11 @@ public class PCMModelCompletion {
         AssemblyContext assembly = CompositionFactory.eINSTANCE.createAssemblyContext();
         assembly.setEncapsulatedComponent__AssemblyContext(component);
         assembly.setParentStructure__AssemblyContext(computeJob);
+
+        // Add dependent parameter usage
+        VariableUsage ioVariableUsage = ModelConstructionUtils.createVariableUsageWithValue("IO_DEMAND",
+                "IO_RATIO.VALUE * CPU_DEMAND.VALUE");
+        assembly.getConfigParameterUsages__AssemblyContext().add((ioVariableUsage));
 
         // Provided Role for the Composite Component (Computing Job)
         OperationProvidedRole compositeRole = RepositoryFactory.eINSTANCE.createOperationProvidedRole();

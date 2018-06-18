@@ -7,6 +7,7 @@ public class JobTypeDescription {
     private String ioTimeStoEx = null;
     private String requiredJobslotsStoEx = null;
     private double relativeFrequency = 0.0;
+    private String ioTimeRatioStoEx = null;
 
     public JobTypeDescription() {
     }
@@ -59,8 +60,15 @@ public class JobTypeDescription {
         this.relativeFrequency = relativeFrequency;
     }
 
+    public String getIoTimeRatioStoEx() {
+        return ioTimeRatioStoEx;
+    }
+
+    public void setIoTimeRatioStoEx(String ioTimeRatioStoEx) {
+        this.ioTimeRatioStoEx = ioTimeRatioStoEx;
+    }
+
     public String toString() {
         return "Job Type";
     }
-
 }
