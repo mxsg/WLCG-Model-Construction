@@ -17,6 +17,7 @@ import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.modelversioning.emfprofile.Stereotype;
 import org.palladiosimulator.commons.eclipseutils.FileHelper;
+import org.palladiosimulator.edp2.models.measuringpoint.MeasuringPoint;
 import org.palladiosimulator.edp2.models.measuringpoint.MeasuringPointRepository;
 import org.palladiosimulator.mdsdprofiles.api.StereotypeAPI;
 import org.palladiosimulator.monitorrepository.Monitor;
@@ -62,6 +63,7 @@ import org.palladiosimulator.pcm.usagemodel.ScenarioBehaviour;
 import org.palladiosimulator.pcm.usagemodel.UsageModel;
 import org.palladiosimulator.pcm.usagemodel.UsageScenario;
 import org.palladiosimulator.pcmmeasuringpoint.ActiveResourceMeasuringPoint;
+import org.palladiosimulator.pcmmeasuringpoint.EntryLevelSystemCallMeasuringPoint;
 import org.palladiosimulator.pcmmeasuringpoint.PcmmeasuringpointFactory;
 
 public class PCMModelCompletion {
@@ -91,6 +93,7 @@ public class PCMModelCompletion {
     private static final String BLUEPRINT_CPU = "WLCGBlueprint_blueprintCPU";
     // private static final String BLUEPRINT_HDD = "WLCGBlueprint_blueprintHDD";
     private static final String BLUEPRINT_CPU_MONITOR = "resourceMonitorCPU";
+    private static final String BLUEPRINT_SYSTEM_CALL_MONITOR = "responseTimeTypeMonitor";
 
     private static final String BLUEPRINT_USAGE_SCENARIO = "WLCGBlueprint_blueprintUsageScenario";
     private static final String BLUEPRINT_ENTRY_LEVEL_SYSTEM_CALL = "WLCGBlueprint_blueprintEntryLevelSystemCall";
@@ -205,6 +208,13 @@ public class PCMModelCompletion {
             throw new IllegalArgumentException("Invalid monitor repository, missing CPU resource monitor.");
         }
 
+        Monitor blueprintResponseTimeMonitor = ModelConstructionUtils.findObjectWithId(allMonitors,
+                BLUEPRINT_SYSTEM_CALL_MONITOR);
+
+        if (blueprintResponseTimeMonitor == null) {
+            throw new IllegalArgumentException("Invalid monitor repository, missing entry level system call monitor.");
+        }
+
         for (NodeTypeDescription nodeType : nodes) {
             String nodeTypeName = nodeType.getName();
 
@@ -256,7 +266,10 @@ public class PCMModelCompletion {
         // Load and complete the Usage Model
         Resource usageModelResource = resourceSet.getResource(modelsPath.appendSegment(USAGE_MODEL_FILENAME), true);
         UsageModel usageModel = (UsageModel) usageModelResource.getContents().get(0);
-        completeUsageModel(usageModel, jobs);
+        completeUsageModel(usageModel, jobs, blueprintResponseTimeMonitor, monitorRepo, measuringPointRepo);
+        
+        // Remove blueprint monitor from monitor repository
+        blueprintResponseTimeMonitor.setMonitorRepository(null);
 
         // Complete Allocation Model
 
@@ -364,7 +377,8 @@ public class PCMModelCompletion {
         // System.out.println("ID of copy: " + EcoreUtil.getID(copyJob));
     }
 
-    public void completeUsageModel(UsageModel usageModel, List<JobTypeDescription> jobs) {
+    public void completeUsageModel(UsageModel usageModel, List<JobTypeDescription> jobs, Monitor responseTimeMonitor,
+            MonitorRepository monitorRepo, MeasuringPointRepository measuringpointRepo) {
 
         List<UsageScenario> usageScenarios = usageModel.getUsageScenario_UsageModel();
         UsageScenario blueprintUsageScenario = ModelConstructionUtils.findObjectWithId(usageScenarios,
@@ -419,7 +433,10 @@ public class PCMModelCompletion {
 
             systemCall.setOperationSignature__EntryLevelSystemCall(jobSignatures.get(jobTypeName));
             systemCall.setProvidedRole_EntryLevelSystemCall(providedRolesSystem.get(jobTypeName));
-
+            
+            // For now, do not add system call monitor and measuring points
+            // addSystemCallMonitor(measuringpointRepo, monitorRepo, systemCall, responseTimeMonitor, jobTypeName);
+            
             // In the end, change all IDs for the new branch transition
             ModelConstructionUtils.appendIDsRecursively(newTransition, jobTypeName);
 
@@ -459,6 +476,31 @@ public class PCMModelCompletion {
             duplicatedMonitor.setActivated(true);
         }
 
+    }
+
+    public void addSystemCallMonitor(MeasuringPointRepository measuringPointRepo, MonitorRepository monitorRepo,
+            EntryLevelSystemCall entryCall, Monitor originalMonitor, String additionalSuffix) {
+
+        EntryLevelSystemCallMeasuringPoint point = PcmmeasuringpointFactory.eINSTANCE
+                .createEntryLevelSystemCallMeasuringPoint();
+        point.setEntryLevelSystemCall(entryCall);
+
+        Monitor duplicatedMonitor = ModelConstructionUtils.copyAppendIds(originalMonitor, additionalSuffix);
+
+        String monitorName = MessageFormat.format("Response Time Monitor EntryLevelSystemCall {0}", additionalSuffix);
+        duplicatedMonitor.setEntityName(monitorName);
+
+        addMonitorToModel(measuringPointRepo, monitorRepo, point, duplicatedMonitor);
+    }
+
+    public void addMonitorToModel(MeasuringPointRepository measuringPointRepo, MonitorRepository monitorRepo,
+            MeasuringPoint measuringPoint, Monitor monitor) {
+
+        measuringPoint.setMeasuringPointRepository(measuringPointRepo);
+
+        monitor.setMeasuringPoint(measuringPoint);
+        monitor.setMonitorRepository(monitorRepo);
+        monitor.setActivated(true);
     }
 
     public BasicComponent buildAndAddJobComponentWithProvidedInterface(Repository repository,
