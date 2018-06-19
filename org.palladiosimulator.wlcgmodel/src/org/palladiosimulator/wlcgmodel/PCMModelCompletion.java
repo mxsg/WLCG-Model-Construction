@@ -65,6 +65,7 @@ import org.palladiosimulator.pcm.usagemodel.UsageScenario;
 import org.palladiosimulator.pcmmeasuringpoint.ActiveResourceMeasuringPoint;
 import org.palladiosimulator.pcmmeasuringpoint.EntryLevelSystemCallMeasuringPoint;
 import org.palladiosimulator.pcmmeasuringpoint.PcmmeasuringpointFactory;
+import org.palladiosimulator.pcmmeasuringpoint.SystemOperationMeasuringPoint;
 
 public class PCMModelCompletion {
 
@@ -156,11 +157,39 @@ public class PCMModelCompletion {
 
             // Create new system provided role and add to system model
             OperationProvidedRole role = RepositoryFactory.eINSTANCE.createOperationProvidedRole();
-            role.setEntityName(jobTypeName);
+            role.setEntityName("provided_role_system_" + jobTypeName);
             role.setProvidedInterface__OperationProvidedRole(jobInterface);
 
             this.providedRolesSystem.put(jobTypeName, role);
             role.setProvidingEntity_ProvidedRole(system);
+            
+            // Create measuring point for each system operation
+            
+            SystemOperationMeasuringPoint systemOperationMp = PcmmeasuringpointFactory.eINSTANCE.createSystemOperationMeasuringPoint();
+            systemOperationMp.setOperationSignature(this.jobSignatures.get(jobTypeName));
+            systemOperationMp.setRole(role);
+            systemOperationMp.setSystem(system);
+            
+            systemOperationMp.setMeasuringPointRepository(measuringPointRepo);
+            
+            // Create corresponding monitor
+            
+            // Find the original monitor from the monitoring repository
+            List<Monitor> monitors = monitorRepo.getMonitors();
+            Monitor blueprintSystemMonitor = ModelConstructionUtils.findObjectWithId(monitors, "systemOperationMonitor");
+
+            if (blueprintSystemMonitor == null) {
+                throw new IllegalArgumentException("Invalid monitor repository, missing system operation monitor.");
+            }
+
+            
+            Monitor duplicatedSystemMonitor = ModelConstructionUtils.copyAppendIds(blueprintSystemMonitor, jobTypeName);
+
+            String systemMonitorName = MessageFormat.format("Response Time Monitor System Operation {0}", jobTypeName);
+            duplicatedSystemMonitor.setEntityName(systemMonitorName);
+
+            addMonitorToModel(measuringPointRepo, monitorRepo, systemOperationMp, duplicatedSystemMonitor);
+
 
             ProvidedDelegationConnector connector = CompositionFactory.eINSTANCE.createProvidedDelegationConnector();
             connector.setOuterProvidedRole_ProvidedDelegationConnector(role);
@@ -286,7 +315,7 @@ public class PCMModelCompletion {
 
             context.setAllocation_AllocationContext(allocation);
         }
-
+        
         // Save all resources and models
         try {
             repositoryResource.save(null);
@@ -539,7 +568,7 @@ public class PCMModelCompletion {
 
         // Set the interface for the job
         OperationProvidedRole opProvidedRole = RepositoryFactory.eINSTANCE.createOperationProvidedRole();
-        opProvidedRole.setEntityName("provided_role_" + jobTypeName);
+        opProvidedRole.setEntityName("provided_role_component_" + jobTypeName);
 
         // Set the interface for the role
         opProvidedRole.setProvidedInterface__OperationProvidedRole(typeInterface);
@@ -603,6 +632,8 @@ public class PCMModelCompletion {
         AssemblyContext assembly = CompositionFactory.eINSTANCE.createAssemblyContext();
         assembly.setEncapsulatedComponent__AssemblyContext(component);
         assembly.setParentStructure__AssemblyContext(computeJob);
+        
+        assembly.setEntityName("assembly_context_" + jobTypeName);
 
         // Add dependent parameter usage
         VariableUsage ioVariableUsage = ModelConstructionUtils.createVariableUsageWithValue("IO_DEMAND",
