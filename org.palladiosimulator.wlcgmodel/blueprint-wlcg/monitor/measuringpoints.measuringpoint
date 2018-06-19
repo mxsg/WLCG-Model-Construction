@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<org.palladiosimulator.edp2.models:MeasuringPointRepository xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:org.palladiosimulator.edp2.models="http://palladiosimulator.org/EDP2/MeasuringPoint/1.0" xmlns:pcmmeasuringpoint="http://palladiosimulator.org/PCM/MeasuringPoint/1.0" id="_DDEv0GgHEeiGuOnjOGWMZQ">
+<org.palladiosimulator.edp2.models:MeasuringPointRepository xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:org.palladiosimulator.edp2.models="http://palladiosimulator.org/EDP2/MeasuringPoint/1.0" xmlns:pcmmeasuringpoint="http://palladiosimulator.org/PCM/MeasuringPoint/1.0" xmlns:repository="http://palladiosimulator.org/PalladioComponentModel/Repository/5.2" id="_DDEv0GgHEeiGuOnjOGWMZQ">
   <measuringPoints xsi:type="pcmmeasuringpoint:ActiveResourceMeasuringPoint" stringRepresentation="CPU [0] in blueprintNode" resourceURIRepresentation="platform:/resource/wlcg-blueprint/nodes.resourceenvironment#WLCGBlueprint_blueprintCPU">
     <activeResource href="../nodes.resourceenvironment#WLCGBlueprint_blueprintCPU"/>
   </measuringPoints>
@@ -8,5 +8,10 @@
   </measuringPoints>
   <measuringPoints xsi:type="pcmmeasuringpoint:ResourceEnvironmentMeasuringPoint" stringRepresentation="Resource Environment: New ResourceEnvironment" resourceURIRepresentation="platform:/resource/wlcg-blueprint/nodes.resourceenvironment#/0">
     <resourceEnvironment href="../nodes.resourceenvironment#/0"/>
+  </measuringPoints>
+  <measuringPoints xsi:type="pcmmeasuringpoint:SystemOperationMeasuringPoint" stringRepresentation="jobsSystem.blueprintJobSystemProvidedRole.runBlueprintJob" resourceURIRepresentation="platform:/resource/wlcg-blueprint/jobs.repository#_pvENQGb7EeiZ7YhGqMXvDQ">
+    <role xsi:type="repository:OperationProvidedRole" href="../jobs.system#_TjzkoGb-EeiZ7YhGqMXvDQ"/>
+    <operationSignature href="../jobs.repository#_pvENQGb7EeiZ7YhGqMXvDQ"/>
+    <system href="../jobs.system#_N6LpsGb-EeiZ7YhGqMXvDQ"/>
   </measuringPoints>
 </org.palladiosimulator.edp2.models:MeasuringPointRepository>

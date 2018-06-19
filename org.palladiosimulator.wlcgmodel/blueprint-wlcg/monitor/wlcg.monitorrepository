@@ -27,4 +27,11 @@
       <processingType xsi:type="monitorrepository:FeedThrough" id="_lFQShHLNEeiuaOBzxc7lFQ"/>
     </measurementSpecifications>
   </monitors>
+  <monitors id="systemOperationMonitor" entityName="System Operation">
+    <measurementSpecifications id="_yqmgEHOMEeiO1rGmL3T-Pg">
+      <metricDescription xsi:type="metricspec:NumericalBaseMetricDescription" href="pathmap://METRIC_SPEC_MODELS/models/commonMetrics.metricspec#_6rYmYs7nEeOX_4BzImuHbA"/>
+      <processingType xsi:type="monitorrepository:FeedThrough" id="_zBq8RHOMEeiO1rGmL3T-Pg"/>
+    </measurementSpecifications>
+    <measuringPoint xsi:type="pcmmeasuringpoint:SystemOperationMeasuringPoint" href="measuringpoints.measuringpoint#//@measuringPoints.3"/>
+  </monitors>
 </monitorrepository:MonitorRepository>
