@@ -1,6 +1,6 @@
 [
     {
-        "computingRate": 19.5,
+        "computingRate": 12.1875,
         "cores": 20,
         "jobslots": 32,
         "name": "Intel(R) Xeon(R) CPU E5-2630 v4 @ 2.20GHz",
@@ -21,21 +21,21 @@
         "nodeCount": 26
     },
     {
-        "computingRate": 20.475,
+        "computingRate": 13.65,
         "cores": 16,
         "jobslots": 24,
         "name": "Intel(R) Xeon(R) CPU E5-2630 v3 @ 2.40GHz",
         "nodeCount": 20
     },
     {
-        "computingRate": 22.01875,
+        "computingRate": 11.009375,
         "cores": 16,
         "jobslots": 32,
         "name": "Intel(R) Xeon(R) CPU E5-2630 v3 @ 2.40GHz",
         "nodeCount": 15
     },
     {
-        "computingRate": 17.66875,
+        "computingRate": 11.779166666666667,
         "cores": 16,
         "jobslots": 24,
         "name": "Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz",
@@ -49,21 +49,21 @@
         "nodeCount": 9
     },
     {
-        "computingRate": 20.78,
+        "computingRate": 10.39,
         "cores": 20,
         "jobslots": 40,
         "name": "Intel(R) Xeon(R) CPU E5-2630 v4 @ 2.20GHz",
         "nodeCount": 9
     },
     {
-        "computingRate": 20.61875,
+        "computingRate": 13.745833333333332,
         "cores": 16,
         "jobslots": 24,
         "name": "Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz",
         "nodeCount": 8
     },
     {
-        "computingRate": 16.3125,
+        "computingRate": 10.875,
         "cores": 16,
         "jobslots": 24,
         "name": "Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz",
@@ -84,21 +84,21 @@
         "nodeCount": 1
     },
     {
-        "computingRate": 22.34,
+        "computingRate": 13.9625,
         "cores": 20,
         "jobslots": 32,
         "name": "Intel(R) Xeon(R) CPU E5-2660 v3 @ 2.60GHz",
         "nodeCount": 1
     },
     {
-        "computingRate": 19.0625,
+        "computingRate": 12.708333333333334,
         "cores": 16,
         "jobslots": 24,
         "name": "Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz",
         "nodeCount": 1
     },
     {
-        "computingRate": 20.43125,
+        "computingRate": 13.620833333333332,
         "cores": 16,
         "jobslots": 24,
         "name": "Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz",
