@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ASCII"?>
 <xmi:XMI xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:emfprofileapplication="http://www.modelversioning.org/emfprofile/application/1.1" xmlns:org.palladiosimulator.loadbalancingaction.catalog.profiles="org.palladiosimulator.loadbalancingaction.catalog.profiles.middlewarepassiveresource" xmlns:org.palladiosimulator.loadbalancingaction.catalog.profiles_1="org.palladiosimulator.loadbalancingaction.catalog.profiles.staticresourcecontainerloadbalancing" xmlns:resourceenvironment="http://palladiosimulator.org/PalladioComponentModel/ResourceEnvironment/5.2">
   <resourceenvironment:ResourceEnvironment entityName="New ResourceEnvironment">
-    <resourceContainer_ResourceEnvironment id="WLCGBlueprint_blueprintNode" entityName="blueprintNode">
+    <resourceContainer_ResourceEnvironment id="WLCGBlueprint_blueprintNode" entityName="blueprintNode" hddResourceSpecifications="WLCGBlueprint_blueprintHDD">
       <activeResourceSpecifications_ResourceContainer id="WLCGBlueprint_blueprintCPU">
         <schedulingPolicy href="pathmap://PCM_MODELS/Palladio.resourcetype#ProcessorSharing"/>
         <activeResourceType_ActiveResourceSpecification href="pathmap://PCM_MODELS/Palladio.resourcetype#_oro4gG3fEdy4YaaT-RYrLQ"/>
         <processingRate_ProcessingResourceSpecification specification="1"/>
       </activeResourceSpecifications_ResourceContainer>
-      <activeResourceSpecifications_ResourceContainer xsi:type="resourceenvironment:HDDProcessingResourceSpecification" id="_FrU8cGb_EeiZ7YhGqMXvDQ">
-        <schedulingPolicy href="pathmap://PCM_MODELS/Palladio.resourcetype#FCFS"/>
+      <activeResourceSpecifications_ResourceContainer xsi:type="resourceenvironment:HDDProcessingResourceSpecification" id="WLCGBlueprint_blueprintHDD" resourceContainer="WLCGBlueprint_blueprintNode">
+        <schedulingPolicy href="pathmap://PCM_MODELS/Palladio.resourcetype#ProcessorSharing"/>
         <activeResourceType_ActiveResourceSpecification href="pathmap://PCM_MODELS/Palladio.resourcetype#_BIjHoQ3KEdyouMqirZIhzQ"/>
         <processingRate_ProcessingResourceSpecification specification="1"/>
         <writeProcessingRate specification="1"/>
