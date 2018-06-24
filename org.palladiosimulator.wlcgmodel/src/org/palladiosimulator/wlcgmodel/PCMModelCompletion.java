@@ -92,7 +92,7 @@ public class PCMModelCompletion {
     private static final String COMPUTE_ASSEMBLY_CONTEXT_SYSTEM = "WLCGBlueprint_computeJobAssemblyContextSystem";
     private static final String BLUEPRINT_NODE = "WLCGBlueprint_blueprintNode";
     private static final String BLUEPRINT_CPU = "WLCGBlueprint_blueprintCPU";
-    // private static final String BLUEPRINT_HDD = "WLCGBlueprint_blueprintHDD";
+    private static final String BLUEPRINT_HDD = "WLCGBlueprint_blueprintHDD";
     private static final String BLUEPRINT_CPU_MONITOR = "resourceMonitorCPU";
     private static final String BLUEPRINT_SYSTEM_CALL_MONITOR = "responseTimeTypeMonitor";
 
@@ -162,34 +162,34 @@ public class PCMModelCompletion {
 
             this.providedRolesSystem.put(jobTypeName, role);
             role.setProvidingEntity_ProvidedRole(system);
-            
+
             // Create measuring point for each system operation
-            
-            SystemOperationMeasuringPoint systemOperationMp = PcmmeasuringpointFactory.eINSTANCE.createSystemOperationMeasuringPoint();
+
+            SystemOperationMeasuringPoint systemOperationMp = PcmmeasuringpointFactory.eINSTANCE
+                    .createSystemOperationMeasuringPoint();
             systemOperationMp.setOperationSignature(this.jobSignatures.get(jobTypeName));
             systemOperationMp.setRole(role);
             systemOperationMp.setSystem(system);
-            
+
             systemOperationMp.setMeasuringPointRepository(measuringPointRepo);
-            
+
             // Create corresponding monitor
-            
+
             // Find the original monitor from the monitoring repository
             List<Monitor> monitors = monitorRepo.getMonitors();
-            Monitor blueprintSystemMonitor = ModelConstructionUtils.findObjectWithId(monitors, "systemOperationMonitor");
+            Monitor blueprintSystemMonitor = ModelConstructionUtils.findObjectWithId(monitors,
+                    "systemOperationMonitor");
 
             if (blueprintSystemMonitor == null) {
                 throw new IllegalArgumentException("Invalid monitor repository, missing system operation monitor.");
             }
 
-            
             Monitor duplicatedSystemMonitor = ModelConstructionUtils.copyAppendIds(blueprintSystemMonitor, jobTypeName);
 
             String systemMonitorName = MessageFormat.format("Response Time Monitor System Operation {0}", jobTypeName);
             duplicatedSystemMonitor.setEntityName(systemMonitorName);
 
             addMonitorToModel(measuringPointRepo, monitorRepo, systemOperationMp, duplicatedSystemMonitor);
-
 
             ProvidedDelegationConnector connector = CompositionFactory.eINSTANCE.createProvidedDelegationConnector();
             connector.setOuterProvidedRole_ProvidedDelegationConnector(role);
@@ -257,6 +257,9 @@ public class PCMModelCompletion {
             ProcessingResourceSpecification cpuResourceSpec = ModelConstructionUtils.findObjectWithId(resourceSpecs,
                     BLUEPRINT_CPU);
 
+            ProcessingResourceSpecification hddResourceSpec = ModelConstructionUtils.findObjectWithId(resourceSpecs,
+                    BLUEPRINT_HDD);
+
             // Set CPU properties
             cpuResourceSpec.setNumberOfReplicas(nodeType.getCores());
 
@@ -264,6 +267,10 @@ public class PCMModelCompletion {
             processingRate.setSpecification(String.valueOf(nodeType.getComputingRate()));
 
             cpuResourceSpec.setProcessingRate_ProcessingResourceSpecification(processingRate);
+
+            // Set HDD properties, keep rate the same
+            hddResourceSpec.setNumberOfReplicas(nodeType.getCores());
+            hddResourceSpec.setResourceContainer_ProcessingResourceSpecification(newNode);
 
             // Add new measuring points for the new resource
             addMeasuringpointsAndMonitors(measuringPointRepo, monitorRepo, cpuResourceSpec, blueprintCpuMonitor,
@@ -296,7 +303,7 @@ public class PCMModelCompletion {
         Resource usageModelResource = resourceSet.getResource(modelsPath.appendSegment(USAGE_MODEL_FILENAME), true);
         UsageModel usageModel = (UsageModel) usageModelResource.getContents().get(0);
         completeUsageModel(usageModel, jobs, blueprintResponseTimeMonitor, monitorRepo, measuringPointRepo);
-        
+
         // Remove blueprint monitor from monitor repository
         blueprintResponseTimeMonitor.setMonitorRepository(null);
 
@@ -315,7 +322,7 @@ public class PCMModelCompletion {
 
             context.setAllocation_AllocationContext(allocation);
         }
-        
+
         // Save all resources and models
         try {
             repositoryResource.save(null);
@@ -462,10 +469,11 @@ public class PCMModelCompletion {
 
             systemCall.setOperationSignature__EntryLevelSystemCall(jobSignatures.get(jobTypeName));
             systemCall.setProvidedRole_EntryLevelSystemCall(providedRolesSystem.get(jobTypeName));
-            
+
             // For now, do not add system call monitor and measuring points
-            // addSystemCallMonitor(measuringpointRepo, monitorRepo, systemCall, responseTimeMonitor, jobTypeName);
-            
+            // addSystemCallMonitor(measuringpointRepo, monitorRepo, systemCall,
+            // responseTimeMonitor, jobTypeName);
+
             // In the end, change all IDs for the new branch transition
             ModelConstructionUtils.appendIDsRecursively(newTransition, jobTypeName);
 
@@ -621,6 +629,11 @@ public class PCMModelCompletion {
                 jobType.getIoTimeRatioStoEx());
         component.getComponentParameterUsage_ImplementationComponentType().add(ioTimeRatioUsage);
 
+        // TODO This should be depending on the job length
+        VariableUsage ioTimeVariableUsage = ModelConstructionUtils.createVariableUsageWithValue("IO_DEMAND",
+                jobType.getIoTimeStoEx());
+        component.getComponentParameterUsage_ImplementationComponentType().add(ioTimeVariableUsage);
+
         VariableUsage resourceDemandRounds = ModelConstructionUtils
                 .createVariableUsageWithValue("RESOURCE_DEMAND_ROUNDS", Integer.toString(10));
         component.getComponentParameterUsage_ImplementationComponentType().add(resourceDemandRounds);
@@ -632,13 +645,13 @@ public class PCMModelCompletion {
         AssemblyContext assembly = CompositionFactory.eINSTANCE.createAssemblyContext();
         assembly.setEncapsulatedComponent__AssemblyContext(component);
         assembly.setParentStructure__AssemblyContext(computeJob);
-        
+
         assembly.setEntityName("assembly_context_" + jobTypeName);
 
         // Add dependent parameter usage
-        VariableUsage ioVariableUsage = ModelConstructionUtils.createVariableUsageWithValue("IO_DEMAND",
-                "IO_RATIO.VALUE * CPU_DEMAND.VALUE");
-        assembly.getConfigParameterUsages__AssemblyContext().add((ioVariableUsage));
+        VariableUsage ioFromRatioVariableUsage = ModelConstructionUtils
+                .createVariableUsageWithValue("IO_DEMAND_FROM_RATIO", "IO_RATIO.VALUE * CPU_DEMAND.VALUE");
+        assembly.getConfigParameterUsages__AssemblyContext().add((ioFromRatioVariableUsage));
 
         // Provided Role for the Composite Component (Computing Job)
         OperationProvidedRole compositeRole = RepositoryFactory.eINSTANCE.createOperationProvidedRole();
