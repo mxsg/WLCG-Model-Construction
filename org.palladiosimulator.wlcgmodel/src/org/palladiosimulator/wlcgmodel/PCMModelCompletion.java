@@ -555,6 +555,8 @@ public class PCMModelCompletion {
 
         StereotypeAPI.setTaggedValue(component, jobType.getRequiredJobslotsStoEx(), "MiddlewareDependency",
                 "numberRequiredResources");
+        StereotypeAPI.setTaggedValue(component, jobType.getSchedulingDelay(), "MiddlewareDependency",
+                "schedulingDelay");
 
         // Create the interface with a single signature
         OperationInterface typeInterface = RepositoryFactory.eINSTANCE.createOperationInterface();
