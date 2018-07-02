@@ -8,6 +8,7 @@ public class JobTypeDescription {
     private String requiredJobslotsStoEx = null;
     private double relativeFrequency = 0.0;
     private String ioTimeRatioStoEx = null;
+    private int schedulingDelay = 12000;
 
     public JobTypeDescription() {
     }
@@ -70,5 +71,13 @@ public class JobTypeDescription {
 
     public String toString() {
         return "Job Type";
+    }
+
+    public int getSchedulingDelay() {
+        return schedulingDelay;
+    }
+
+    public void setSchedulingDelay(int schedulingDelay) {
+        this.schedulingDelay = schedulingDelay;
     }
 }
