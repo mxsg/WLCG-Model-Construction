@@ -1,20 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE project>
 <?eclipse version="3.4"?>
 <plugin>
 
    <extension
          point="org.eclipse.ui.newWizards">
-      <category
-            name="Sample Wizards"
-            id="org.palladiosimulator.wlcgmodel">
-      </category>
-      <wizard
-            name="Multi-page Editor file"
-            icon="icons/sample.png"
-            category="org.palladiosimulator.wlcgmodel"
-            class="org.palladiosimulator.wlcgmodel.wizards.SampleNewWizard"
-            id="org.palladiosimulator.wlcgmodel.wizards.SampleNewWizard">
-      </wizard>
       <category
             id="org.palladiosimulator.wlcgmodel.wlcg"
             name="WLCG Simulation Model">
