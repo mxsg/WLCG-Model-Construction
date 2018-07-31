@@ -21,189 +21,186 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.dialogs.ContainerSelectionDialog;
 
 /**
- * The "New" wizard page allows setting the container for the new file as well
- * as the file name. The page will only accept file name without the extension
- * OR with the extension that matches the expected one (mpe).
+ * The "New" wizard page allows setting the container for the new file as well as the file name. The
+ * page will only accept file name without the extension OR with the extension that matches the
+ * expected one (mpe).
  */
 
 public class NewWLCGModelWizardResourcePage extends WizardPage {
-	
-	private Text modelBlueprintLocationText;
-	private Text modelParametersLocationText;
-	
-	private Text containerText;
-	private Text fileText;
-	private ISelection selection;
 
-	/**
-	 * Constructor for SampleNewWizardPage.
-	 * 
-	 * @param pageName
-	 */
-	public NewWLCGModelWizardResourcePage(ISelection selection) {
-		super("wizardPage");
-		setTitle("Model Parameter Selection");
-		setDescription("Choose paths for the files to create the model from.");
-		this.selection = selection;
-	}
+    private Text modelBlueprintLocationText;
+    private Text modelParametersLocationText;
 
-	@Override
-	public void createControl(Composite parent) {
-		Composite container = new Composite(parent, SWT.NULL);
-		GridLayout layout = new GridLayout();
-		container.setLayout(layout);
-		layout.numColumns = 3;
-		layout.verticalSpacing = 9;
-		Label label = new Label(container, SWT.NULL);
-		label.setText("&Model Blueprint Files:");
+    private Text containerText;
+    private Text fileText;
+    private ISelection selection;
 
-		modelBlueprintLocationText = new Text(container, SWT.BORDER | SWT.SINGLE);
-		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
-		modelBlueprintLocationText.setLayoutData(gd);
-		modelBlueprintLocationText.addModifyListener(new ModifyListener() {
-			@Override
-			public void modifyText(ModifyEvent e) {
-				dialogChanged();
-			}
-		});
-		
-//		containerText = new Text(container, SWT.BORDER | SWT.SINGLE);
-//		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
-//		containerText.setLayoutData(gd);
-//		containerText.addModifyListener(new ModifyListener() {
-//			@Override
-//			public void modifyText(ModifyEvent e) {
-//				dialogChanged();
-//			}
-//		});
+    /**
+     * Constructor for SampleNewWizardPage.
+     *
+     * @param pageName
+     */
+    public NewWLCGModelWizardResourcePage(ISelection selection) {
+        super("wizardPage");
+        setTitle("Model Parameter Selection");
+        setDescription("Choose paths for the files to create the model from.");
+        this.selection = selection;
+    }
 
-		Button button = new Button(container, SWT.PUSH);
-		button.setText("Browse...");
-		button.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent e) {
-				handleBrowse();
-			}
-		});
-		label = new Label(container, SWT.NULL);
-		label.setText("&Model Parameter Files:");
+    @Override
+    public void createControl(Composite parent) {
+        Composite container = new Composite(parent, SWT.NULL);
+        GridLayout layout = new GridLayout();
+        container.setLayout(layout);
+        layout.numColumns = 3;
+        layout.verticalSpacing = 9;
+        Label label = new Label(container, SWT.NULL);
+        label.setText("&Model Blueprint Files:");
 
-		fileText = new Text(container, SWT.BORDER | SWT.SINGLE);
-		gd = new GridData(GridData.FILL_HORIZONTAL);
-		fileText.setLayoutData(gd);
-		fileText.addModifyListener(new ModifyListener() {
-			public void modifyText(ModifyEvent e) {
-				dialogChanged();
-			}
-		});
-		
-//		Button parameterButton = new Button(container, SWT.PUSH);
-//		parameterButton.setText("Browse...");
-//		parameterButton.addSelectionListener(new SelectionAdapter() {
-//			public void widgetSelected(SelectionEvent e) {
-//				handleParameterBrowse();
-//			}
-//		});
+        modelBlueprintLocationText = new Text(container, SWT.BORDER | SWT.SINGLE);
+        GridData gd = new GridData(GridData.FILL_HORIZONTAL);
+        modelBlueprintLocationText.setLayoutData(gd);
+        modelBlueprintLocationText.addModifyListener(new ModifyListener() {
+            @Override
+            public void modifyText(ModifyEvent e) {
+                dialogChanged();
+            }
+        });
 
-		initialize();
-		dialogChanged();
-		setControl(container);
-	}
+        // containerText = new Text(container, SWT.BORDER | SWT.SINGLE);
+        // GridData gd = new GridData(GridData.FILL_HORIZONTAL);
+        // containerText.setLayoutData(gd);
+        // containerText.addModifyListener(new ModifyListener() {
+        // @Override
+        // public void modifyText(ModifyEvent e) {
+        // dialogChanged();
+        // }
+        // });
 
-	/**
-	 * Tests if the current workbench selection is a suitable container to use.
-	 */
+        Button button = new Button(container, SWT.PUSH);
+        button.setText("Browse...");
+        button.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                handleBrowse();
+            }
+        });
+        label = new Label(container, SWT.NULL);
+        label.setText("&Model Parameter Files:");
 
-	private void initialize() {
-		if (selection != null && selection.isEmpty() == false
-				&& selection instanceof IStructuredSelection) {
-			IStructuredSelection ssel = (IStructuredSelection) selection;
-			if (ssel.size() > 1)
-				return;
-			Object obj = ssel.getFirstElement();
-			if (obj instanceof IResource) {
-				IContainer container;
-				if (obj instanceof IContainer)
-					container = (IContainer) obj;
-				else
-					container = ((IResource) obj).getParent();
-				containerText.setText(container.getFullPath().toString());
-			}
-		}
-		fileText.setText("new_file.mpe");
-	}
+        fileText = new Text(container, SWT.BORDER | SWT.SINGLE);
+        gd = new GridData(GridData.FILL_HORIZONTAL);
+        fileText.setLayoutData(gd);
+        fileText.addModifyListener(new ModifyListener() {
+            @Override
+            public void modifyText(ModifyEvent e) {
+                dialogChanged();
+            }
+        });
 
-	/**
-	 * Uses the standard container selection dialog to choose the new value for
-	 * the container field.
-	 */
+        // Button parameterButton = new Button(container, SWT.PUSH);
+        // parameterButton.setText("Browse...");
+        // parameterButton.addSelectionListener(new SelectionAdapter() {
+        // public void widgetSelected(SelectionEvent e) {
+        // handleParameterBrowse();
+        // }
+        // });
 
-	private void handleBrowse() {
-		ContainerSelectionDialog dialog = new ContainerSelectionDialog(
-				getShell(), ResourcesPlugin.getWorkspace().getRoot(), false,
-				"Select new file container");
-		if (dialog.open() == ContainerSelectionDialog.OK) {
-			Object[] result = dialog.getResult();
-			if (result.length == 1) {
-				containerText.setText(((Path) result[0]).toString());
-			}
-		}
-	}
-	
-	private void handleParameterBrowse() {
-		// TODO Implement this.
-	}
+        initialize();
+        dialogChanged();
+        setControl(container);
+    }
 
-	/**
-	 * Ensures that both text fields are set.
-	 */
+    /**
+     * Tests if the current workbench selection is a suitable container to use.
+     */
 
-	private void dialogChanged() {
-		IResource container = ResourcesPlugin.getWorkspace().getRoot()
-				.findMember(new Path(getContainerName()));
-		String fileName = getFileName();
+    private void initialize() {
+        if (selection != null && selection.isEmpty() == false && selection instanceof IStructuredSelection) {
+            IStructuredSelection ssel = (IStructuredSelection) selection;
+            if (ssel.size() > 1)
+                return;
+            Object obj = ssel.getFirstElement();
+            if (obj instanceof IResource) {
+                IContainer container;
+                if (obj instanceof IContainer)
+                    container = (IContainer) obj;
+                else
+                    container = ((IResource) obj).getParent();
+                containerText.setText(container.getFullPath().toString());
+            }
+        }
+        fileText.setText("new_file.mpe");
+    }
 
-		if (getContainerName().length() == 0) {
-			updateStatus("Model blueprint location must be specified");
-			return;
-		}
-		if (container == null
-				|| (container.getType() & (IResource.PROJECT | IResource.FOLDER)) == 0) {
-			updateStatus("Model blueprints must exist");
-			return;
-		}
-		if (!container.isAccessible()) {
-			updateStatus("Project must be writable");
-			return;
-		}
-		if (fileName.length() == 0) {
-			updateStatus("File name must be specified");
-			return;
-		}
-		if (fileName.replace('\\', '/').indexOf('/', 1) > 0) {
-			updateStatus("File name must be valid");
-			return;
-		}
-		int dotLoc = fileName.lastIndexOf('.');
-		if (dotLoc != -1) {
-			String ext = fileName.substring(dotLoc + 1);
-			if (ext.equalsIgnoreCase("mpe") == false) {
-				updateStatus("File extension must be \"mpe\"");
-				return;
-			}
-		}
-		updateStatus(null);
-	}
+    /**
+     * Uses the standard container selection dialog to choose the new value for the container field.
+     */
 
-	private void updateStatus(String message) {
-		setErrorMessage(message);
-		setPageComplete(message == null);
-	}
+    private void handleBrowse() {
+        ContainerSelectionDialog dialog = new ContainerSelectionDialog(getShell(),
+                ResourcesPlugin.getWorkspace().getRoot(), false, "Select new file container");
+        if (dialog.open() == ContainerSelectionDialog.OK) {
+            Object[] result = dialog.getResult();
+            if (result.length == 1) {
+                containerText.setText(((Path) result[0]).toString());
+            }
+        }
+    }
 
-	public String getContainerName() {
-		return containerText.getText();
-	}
+    private void handleParameterBrowse() {
+        // TODO Implement this.
+    }
 
-	public String getFileName() {
-		return fileText.getText();
-	}
+    /**
+     * Ensures that both text fields are set.
+     */
+
+    private void dialogChanged() {
+        IResource container = ResourcesPlugin.getWorkspace().getRoot().findMember(new Path(getContainerName()));
+        String fileName = getFileName();
+
+        if (getContainerName().length() == 0) {
+            updateStatus("Model blueprint location must be specified");
+            return;
+        }
+        if (container == null || (container.getType() & (IResource.PROJECT | IResource.FOLDER)) == 0) {
+            updateStatus("Model blueprints must exist");
+            return;
+        }
+        if (!container.isAccessible()) {
+            updateStatus("Project must be writable");
+            return;
+        }
+        if (fileName.length() == 0) {
+            updateStatus("File name must be specified");
+            return;
+        }
+        if (fileName.replace('\\', '/').indexOf('/', 1) > 0) {
+            updateStatus("File name must be valid");
+            return;
+        }
+        int dotLoc = fileName.lastIndexOf('.');
+        if (dotLoc != -1) {
+            String ext = fileName.substring(dotLoc + 1);
+            if (ext.equalsIgnoreCase("mpe") == false) {
+                updateStatus("File extension must be \"mpe\"");
+                return;
+            }
+        }
+        updateStatus(null);
+    }
+
+    private void updateStatus(String message) {
+        setErrorMessage(message);
+        setPageComplete(message == null);
+    }
+
+    public String getContainerName() {
+        return containerText.getText();
+    }
+
+    public String getFileName() {
+        return fileText.getText();
+    }
 }
