@@ -5,10 +5,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -28,16 +24,10 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.emf.common.util.URI;
-import org.eclipse.emf.ecore.EObject;
-import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
-import org.eclipse.sirius.business.api.componentization.ViewpointRegistry;
-import org.eclipse.sirius.business.api.session.Session;
-import org.eclipse.sirius.business.api.session.SessionManager;
 import org.eclipse.sirius.ui.tools.api.project.ModelingProjectManager;
-import org.eclipse.sirius.viewpoint.description.Viewpoint;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IPerspectiveDescriptor;
 import org.eclipse.ui.IWorkbench;
@@ -48,38 +38,30 @@ import org.eclipse.ui.WorkbenchException;
 import org.eclipse.ui.actions.WorkspaceModifyOperation;
 import org.eclipse.ui.dialogs.WizardNewProjectCreationPage;
 import org.eclipse.ui.wizards.newresource.BasicNewProjectResourceWizard;
-import org.palladiosimulator.architecturaltemplates.AT;
 import org.palladiosimulator.commons.eclipseutils.FileHelper;
-import org.palladiosimulator.editors.sirius.custom.util.SiriusCustomUtil;
 import org.palladiosimulator.wlcgmodel.Config;
 import org.palladiosimulator.wlcgmodel.PCMModelCompletion;
 
 /**
- * A wizard to create a new palladio model according to a chosen template.
+ * A wizard to create a new calibrated WLCG model.
+ *
+ * This wizard is based on the generic PCM Project Wizard.
  */
 public class NewWLCGModelWizard extends Wizard implements INewWizard {
 
-    /** An AT catalog stores initiator templates in this folder. */
-    private static final String INITIATOR_TEMPLATES_FOLDER = "initiatorTemplates";
-    
-	private static final String PERSPECTIVE_ID = "org.palladiosimulator.pcmbench.perspectives.palladio";
-	
-    private static final String[] MODEL_BLUEPRINT_NAMES = {"exp.experiments",
-                                                           "jobs.repository",
-                                                           "jobs.system",
-                                                           "node.allocation",
-                                                           "node.ressourceenvironment",
-                                                           "wlcg.usagemodel"};
+    /** ID of the perspective to be opened after project creation. */
+    private static final String PERSPECTIVE_ID = "org.palladiosimulator.pcmbench.perspectives.palladio";
+
+    /** Path to the directory containing the blueprint model files. */
     private static final String MODEL_PARAMETER_FOLDER = "platform:/plugin/org.palladiosimulator.wlcgmodel/parameters";
 
     private WizardNewProjectCreationPage projectCreationPage;
-//    private NewPalladioTemplateWizardPage palladioTemplatePage;
     private IProject project;
     private IConfigurationElement config;
     private IWorkbench workbench;
 
     /**
-     * Constructor for NewPCMWizard.
+     * Constructor for the WLCG Model Creation Wizard.
      */
     public NewWLCGModelWizard() {
         super();
@@ -91,10 +73,6 @@ public class NewWLCGModelWizard extends Wizard implements INewWizard {
         this.workbench = workbench;
     }
 
-    /**
-     * Adding the page to the wizard.
-     */
-
     @Override
     public void addPages() {
         // set the basic project page
@@ -102,10 +80,6 @@ public class NewWLCGModelWizard extends Wizard implements INewWizard {
         this.projectCreationPage.setDescription("Create a new WLCG Model Project.");
         this.projectCreationPage.setTitle("New WLCG Modeling Project");
         addPage(this.projectCreationPage);
-
-//        // set the template page
-//        this.palladioTemplatePage = new NewPalladioTemplateWizardPage(ArchitecturalTemplateAPI.getInitiatorATs());
-//        addPage(this.palladioTemplatePage);
     }
 
     @Override
@@ -113,16 +87,15 @@ public class NewWLCGModelWizard extends Wizard implements INewWizard {
         final IProject projectHandle = this.projectCreationPage.getProjectHandle();
 
         final java.net.URI projectURI = (!this.projectCreationPage.useDefaults())
-                ? this.projectCreationPage.getLocationURI() : null;
+                ? this.projectCreationPage.getLocationURI()
+                : null;
 
         final IWorkspace workspace = ResourcesPlugin.getWorkspace();
 
         final IProjectDescription desc = workspace.newProjectDescription(projectHandle.getName());
         desc.setLocationURI(projectURI);
 
-        /*
-         * Creating the project encapsulated in a workspace operation
-         */
+        // Project is created inside of a workspace operation
         final WorkspaceModifyOperation op = new WorkspaceModifyOperation() {
 
             @Override
@@ -131,10 +104,6 @@ public class NewWLCGModelWizard extends Wizard implements INewWizard {
             }
         };
 
-        /*
-         * This isn't as robust as the code in the BasicNewProjectResourceWizard class. Consider
-         * beefing this up to improve error handling.
-         */
         try {
             getContainer().run(true, true, op);
         } catch (final Exception e) {
@@ -150,65 +119,69 @@ public class NewWLCGModelWizard extends Wizard implements INewWizard {
         BasicNewProjectResourceWizard.updatePerspective(this.config);
         BasicNewProjectResourceWizard.selectAndReveal(this.project, this.workbench.getActiveWorkbenchWindow());
 
-        
-        if(!getCurrentPerspectiveId().equals(PERSPECTIVE_ID)) {
-        	boolean confirm = MessageDialog.openConfirm(getShell(), "Palladio Perspective", "This project is associated with the Palladio perspective.\n\nDo you want to open this perspective now?");
-        	if (confirm)
-        		openPalladioPerspective();
+        if (!getCurrentPerspectiveId().equals(PERSPECTIVE_ID)) {
+            boolean confirm = MessageDialog.openConfirm(getShell(), "Palladio Perspective",
+                    "This project is associated with the Palladio perspective.\n\nDo you want to open this perspective now?");
+            if (confirm)
+                openPalladioPerspective();
         }
-        
+
         return true;
     }
 
     private void openPalladioPerspective() {
-		IWorkbench workbench = PlatformUI.getWorkbench();
-		IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
-		try {
-			workbench.showPerspective(PERSPECTIVE_ID, window);
-		} catch (WorkbenchException e) {
-			MessageDialog.openError(getShell(), "Error", "Could not open Palladio Perspective");
+        IWorkbench workbench = PlatformUI.getWorkbench();
+        IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
+        try {
+            workbench.showPerspective(PERSPECTIVE_ID, window);
+        } catch (WorkbenchException e) {
+            MessageDialog.openError(getShell(), "Error", "Could not open Palladio Perspective");
             e.printStackTrace();
-		}
-	}
+        }
+    }
 
-	private String getCurrentPerspectiveId() {
-		IWorkbench workbench = PlatformUI.getWorkbench();
-		IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
-		IWorkbenchPage page = window.getActivePage();
-		IPerspectiveDescriptor perspective = page.getPerspective();
-		return perspective.getId();
-	}
+    private String getCurrentPerspectiveId() {
+        IWorkbench workbench = PlatformUI.getWorkbench();
+        IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
+        IWorkbenchPage page = window.getActivePage();
+        IPerspectiveDescriptor perspective = page.getPerspective();
+        return perspective.getId();
+    }
 
-	/**
+    /**
      * This creates the project in the workspace.
-     * 
+     *
      * @param description
      *            The description to set for the project.
      * @param projectHandle
+     *            The handle to the project.
      * @param monitor
+     *            The progress monitor to be updated.
      * @throws CoreException
+     *             Thrown if model files could not be copied to project.
      * @throws OperationCanceledException
+     *             Thrown in case the user cancels the project creation.
      */
     private IProject createProject(final IProjectDescription description, final IProject projectHandle,
             final IProgressMonitor monitor) throws CoreException, OperationCanceledException {
         try {
             monitor.beginTask("Creating Project", 8000);
             createAndOpenProject(description, projectHandle, SubMonitor.convert(monitor, "Main Task", 2000));
-//            handleTemplate(projectHandle, SubMonitor.convert(monitor, "Initializing based on AT", 2000));
-            copyModelsToProject(computeBlueprintPath(), projectHandle, SubMonitor.convert(monitor, "Creating model files", 2000));
-            
-            
-            // Try loading and writing models
+
+            // Copy blueprint model files to newly created project
+            copyModelsToProject(computeBlueprintPath(), projectHandle,
+                    SubMonitor.convert(monitor, "Creating model files", 2000));
+
+            /* Construct models and load into project */
             PCMModelCompletion importer = new PCMModelCompletion();
-            
+
             // Compute project location
             URI projectURI = URI.createURI(projectHandle.getFullPath().toString());
-            
+
             importer.loadParametersAndCompleteModels(projectURI, computeParameterPath());
-            
+
             convertToModelingProject(projectHandle,
                     SubMonitor.convert(monitor, "Converting to Modeling Project", 2000));
-//            activateViewpoints(projectHandle, SubMonitor.convert(monitor, "Activating Viewpoints", 2000));
         } finally {
             monitor.done();
         }
@@ -224,23 +197,10 @@ public class NewWLCGModelWizard extends Wizard implements INewWizard {
         projectHandle.open(IResource.BACKGROUND_REFRESH, subMonitor.split(1000));
     }
 
-    /**
-     * Check if a template was selected and produce the model files.
-     * 
-     * @param projectHandle
-     * @param monitor
-     * @throws CoreException
-     */
-//    private void handleTemplate(final IProject projectHandle, final SubMonitor subMonitor) throws CoreException {
-//        final AT selectedTemplate = this.palladioTemplatePage.getSelectedTemplate();
-//        if (selectedTemplate != null) {
-//            addToProject(computeTemplatePath(selectedTemplate), projectHandle, subMonitor);
-//        }
-//    }
-    
-    private void copyModelsToProject(final URI path, final IContainer target, final SubMonitor subMonitor) throws CoreException {
-    	addToProject(path, target, subMonitor);
-    }    
+    private void copyModelsToProject(final URI path, final IContainer target, final SubMonitor subMonitor)
+            throws CoreException {
+        addToProject(path, target, subMonitor);
+    }
 
     private void addToProject(final URI path, final IContainer target, final SubMonitor subMonitor)
             throws CoreException {
@@ -275,40 +235,23 @@ public class NewWLCGModelWizard extends Wizard implements INewWizard {
             throwCoreException("File " + source.getAbsolutePath() + " does not exist!");
         } catch (final IOException e) {
             throwCoreException(
-                    "Cannot create inpht stream on file " + source.getAbsolutePath() + "! " + e.getMessage());
+                    "Cannot create input stream on file " + source.getAbsolutePath() + "! " + e.getMessage());
         } catch (final CoreException e) {
             throwCoreException(e.getMessage());
         }
     }
 
-    private URI computeTemplatePath(final AT selectedTemplate) {
-        final URI templateFolderURI = getRootURI(selectedTemplate).appendSegment(INITIATOR_TEMPLATES_FOLDER);
-        final String[] segments = URI.createURI(selectedTemplate.getDefaultInstanceURI()).segments();
-        return templateFolderURI.appendSegments(segments);
-    }
-    
     private static URI computeBlueprintPath() {
         return URI.createURI(Config.MODEL_BLUEPRINTS_DIRECTORY);
     }
-    
+
     private static URI computeParameterPath() {
         return URI.createURI(MODEL_PARAMETER_FOLDER);
     }
 
     /**
-     * Root folder of the eObject.
-     * 
-     * @param eObject
-     *            the eObject where the root folder shall be found for.
-     * @return the root folder.
-     */
-    private URI getRootURI(final EObject eObject) {
-        return eObject.eResource().getURI().trimFragment().trimSegments(1);
-    }
-
-    /**
      * Throw a core exception based on a given error message.
-     * 
+     *
      * @param message
      *            The message to present.
      * @throws CoreException
@@ -321,41 +264,10 @@ public class NewWLCGModelWizard extends Wizard implements INewWizard {
     }
 
     /**
-     * Convert to modeling project.
+     * Convert the project to a modeling project.
      */
     private void convertToModelingProject(final IProject projectHandle, final SubMonitor subMonitor)
             throws CoreException {
         ModelingProjectManager.INSTANCE.convertToModelingProject(projectHandle, subMonitor);
     }
-
-    /**
-     * Activate viewpoints.
-     */
-    private void activateViewpoints(final IProject projectHandle, final SubMonitor subMonitor) {
-        final URI representationsURI = SiriusCustomUtil.getRepresentationsURI(projectHandle);
-        final Session session = SessionManager.INSTANCE.getSession(representationsURI, subMonitor);
-        final Set<Viewpoint> registry = ViewpointRegistry.getInstance().getViewpoints();
-        final HashSet<Viewpoint> viewpoints = new HashSet<>();
-        final List<String> extensions = getExtensions(session);
-        for (final Viewpoint viewpoint : registry) {
-            final String ext = viewpoint.getModelFileExtension();
-            if (extensions.contains(ext)) {
-                viewpoints.add(viewpoint);
-            }
-        }
-        SiriusCustomUtil.selectViewpoints(session, viewpoints, true, subMonitor);
-    }
-
-    private List<String> getExtensions(final Session session) {
-        final List<String> extensions = new ArrayList<>();
-        for (final Resource r : session.getSemanticResources()) {
-            if (r.getClass().getPackage().getName().startsWith("org.palladiosimulator.pcm.")) {
-                if (r.getURI().isPlatform()) {
-                    extensions.add(r.getURI().fileExtension());
-                }
-            }
-        }
-        return extensions;
-    }
-
 }
