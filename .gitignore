@@ -2,7 +2,9 @@
 bin/
 tmp/
 .settings/
+
 .project
+.checkstyle
 
 # Locally stored "Eclipse launch configurations"
 *.launch
