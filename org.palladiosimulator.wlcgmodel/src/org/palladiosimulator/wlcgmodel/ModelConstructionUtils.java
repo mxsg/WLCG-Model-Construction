@@ -16,6 +16,10 @@ import org.palladiosimulator.pcm.parameter.VariableUsage;
 import de.uka.ipd.sdq.stoex.StoexFactory;
 import de.uka.ipd.sdq.stoex.VariableReference;
 
+/**
+ * @author Maximilian Stemmer-Grabow
+ *
+ */
 public class ModelConstructionUtils {
 
     public static VariableUsage createVariableUsageWithValue(String parameterName, String valueSpecification) {
@@ -41,11 +45,11 @@ public class ModelConstructionUtils {
     }
 
     /**
-     * Find the object with known ID in the list, return null if there is no such
-     * object.
-     * 
-     * @param objects
-     * @param id
+     * Find the object with known ID in the list, return null if there is no such object.
+     *
+     * @param objects List of objects to be searched for the object with given ID.
+     * @param id The ID of the object to be searched.
+     * @return
      */
     public static <T extends EObject> T findObjectWithId(List<T> objects, String id) {
         try {
@@ -57,11 +61,11 @@ public class ModelConstructionUtils {
     }
 
     /**
-     * Find the object with know ID in all objects contained in the passed object,
-     * null if there is no such object.
-     * 
-     * @param object
-     * @param id
+     * Find the object with know ID in all objects contained in the passed object, null if there is
+     * no such object.
+     *
+     * @param object The object to be recursively searched.
+     * @param id The ID of the object to be searched for.
      * @return
      */
     public static EObject findObjectWithIdRecursively(EObject object, String id) {

@@ -1,6 +1,14 @@
 package org.palladiosimulator.wlcgmodel;
 
+/**
+ * Instances of this class contain the parameters required to describe the properties
+ * of a type of job to be included in the simulation model.
+ *
+ * @author Maximilian Stemmer-Grabow
+ *
+ */
 public class JobTypeDescription {
+
     private String typeName = null;
     private String interarrivalStoEx = null;
     private String cpuDemandStoEx = null;
@@ -69,6 +77,7 @@ public class JobTypeDescription {
         this.ioTimeRatioStoEx = ioTimeRatioStoEx;
     }
 
+    @Override
     public String toString() {
         return "Job Type";
     }
