@@ -44,10 +44,8 @@ import org.palladiosimulator.pcm.resourceenvironment.ResourceEnvironment;
 import org.palladiosimulator.pcm.seff.AbstractAction;
 import org.palladiosimulator.pcm.seff.BranchAction;
 import org.palladiosimulator.pcm.seff.ForkAction;
-import org.palladiosimulator.pcm.seff.InternalAction;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 import org.palladiosimulator.pcm.seff.ServiceEffectSpecification;
-import org.palladiosimulator.pcm.seff.seff_performance.ParametricResourceDemand;
 import org.palladiosimulator.pcm.usagemodel.Branch;
 import org.palladiosimulator.pcm.usagemodel.BranchTransition;
 import org.palladiosimulator.pcm.usagemodel.EntryLevelSystemCall;
@@ -55,7 +53,6 @@ import org.palladiosimulator.pcm.usagemodel.ScenarioBehaviour;
 import org.palladiosimulator.pcm.usagemodel.UsageModel;
 import org.palladiosimulator.pcm.usagemodel.UsageScenario;
 import org.palladiosimulator.pcmmeasuringpoint.ActiveResourceMeasuringPoint;
-import org.palladiosimulator.pcmmeasuringpoint.EntryLevelSystemCallMeasuringPoint;
 import org.palladiosimulator.pcmmeasuringpoint.PcmmeasuringpointFactory;
 import org.palladiosimulator.pcmmeasuringpoint.SystemOperationMeasuringPoint;
 
@@ -87,8 +84,6 @@ public class PCMModelCompletion {
     private static final String COMPUTE_JOB_COMPOSITE_COMPONENT_ID = "WLCGBlueprint_computeJobCompositeComponent";
     private static final String BLUEPRINT_JOB_COMPONENT_ID = "WLCGBlueprint_blueprintJobComponent";
     private static final String BLUEPRINT_JOB_SEFF = "WLCGBlueprint_runBlueprintJobSEFF";
-    private static final String BLUEPRINT_JOB_CPU_ACTION = "WLCGBlueprint_runBlueprintJobSEFF_cpuAction";
-    private static final String BLUEPRINT_JOB_IO_ACTION = "WLCGBlueprint_runBlueprintJobSEFF_ioAction";
     private static final String BLUEPRINT_JOB_FORK = "WLCGBlueprint_runBlueprintJobSEFF_forkAction";
 
     private static final String COMPUTE_ASSEMBLY_CONTEXT_SYSTEM = "WLCGBlueprint_computeJobAssemblyContextSystem";
@@ -610,37 +605,6 @@ public class PCMModelCompletion {
     }
 
     /**
-     * Add a monitor for a system call by duplicating the provided monitor, creating a new measuring
-     * point and assigning the system call monitor to the provided entry level system call; also
-     * adds the monitor to the monitor repository.
-     *
-     * @param measuringPointRepo
-     *            The repository the new measuring point will be added to.
-     * @param monitorRepo
-     *            The repository the new monitor will be added to.
-     * @param entryCall
-     *            The entry level system call to be monitored.
-     * @param originalMonitor
-     *            The blueprint monitor to be duplicated.
-     * @param additionalSuffix
-     *            An additional suffix to be added to the ID of the new monitor.
-     */
-    private void addSystemCallMonitor(MeasuringPointRepository measuringPointRepo, MonitorRepository monitorRepo,
-            EntryLevelSystemCall entryCall, Monitor originalMonitor, String additionalSuffix) {
-
-        EntryLevelSystemCallMeasuringPoint point = PcmmeasuringpointFactory.eINSTANCE
-                .createEntryLevelSystemCallMeasuringPoint();
-        point.setEntryLevelSystemCall(entryCall);
-
-        Monitor duplicatedMonitor = ModelConstructionUtils.copyAppendIds(originalMonitor, additionalSuffix);
-
-        String monitorName = MessageFormat.format("Response Time Monitor EntryLevelSystemCall {0}", additionalSuffix);
-        duplicatedMonitor.setEntityName(monitorName);
-
-        addMonitorToModel(measuringPointRepo, monitorRepo, point, duplicatedMonitor);
-    }
-
-    /**
      * Add the monitor and measuring point to their respective repositories, connect and activate
      * monitor and measuring point.
      *
@@ -810,59 +774,6 @@ public class PCMModelCompletion {
         connector.setParentStructure__Connector(computeJob);
 
         return component;
-    }
-
-    /**
-     * Complete a blueprint service effect specification with the parameters from a job type
-     * description.
-     *
-     * @param blueprintSEFF
-     *            The blueprint for the SEFF to be duplicated and completed.
-     * @param jobType
-     *            The job type description to be used to complete the SEFF blueprint.
-     * @return The completed service effect specification.
-     */
-    private ResourceDemandingSEFF buildJobSEFF(ResourceDemandingSEFF blueprintSEFF, JobTypeDescription jobType) {
-
-        // Copy object, change IDs below after finding contained objects from blueprint
-        ResourceDemandingSEFF newSeff = EcoreUtil.copy(blueprintSEFF);
-
-        InternalAction cpuDemandAction = null;
-        InternalAction ioDemandAction = null;
-
-        EObject actionObject = ModelConstructionUtils.findObjectWithIdRecursively(newSeff, BLUEPRINT_JOB_CPU_ACTION);
-        if (actionObject instanceof InternalAction) {
-            cpuDemandAction = (InternalAction) actionObject;
-        }
-
-        actionObject = ModelConstructionUtils.findObjectWithIdRecursively(newSeff, BLUEPRINT_JOB_IO_ACTION);
-        if (actionObject instanceof InternalAction) {
-            ioDemandAction = (InternalAction) actionObject;
-        }
-
-        // Iterate through the actions to find the random variable for I/O, CPU demand
-        ParametricResourceDemand cpuDemand = ModelConstructionUtils.findParametricResourceDemand(cpuDemandAction);
-        ParametricResourceDemand ioDemand = ModelConstructionUtils.findParametricResourceDemand(ioDemandAction);
-
-        if (cpuDemand == null || ioDemand == null) {
-            throw new IllegalArgumentException("Invalid model blueprint: missing internal actions.");
-        }
-
-        PCMRandomVariable cpuVar = CoreFactory.eINSTANCE.createPCMRandomVariable();
-        cpuVar.setSpecification(jobType.getCpuDemandStoEx());
-        cpuDemand.setSpecification_ParametericResourceDemand(cpuVar);
-
-        PCMRandomVariable ioVar = CoreFactory.eINSTANCE.createPCMRandomVariable();
-        ioVar.setSpecification(jobType.getIoTimeStoEx());
-        ioDemand.setSpecification_ParametericResourceDemand(ioVar);
-
-        cpuDemand.setSpecification_ParametericResourceDemand(cpuVar);
-        ioDemand.setSpecification_ParametericResourceDemand(ioVar);
-
-        // Change IDs to prevent conflicts
-        ModelConstructionUtils.setRandomIDsRecursively(newSeff);
-
-        return newSeff;
     }
 
     /**
