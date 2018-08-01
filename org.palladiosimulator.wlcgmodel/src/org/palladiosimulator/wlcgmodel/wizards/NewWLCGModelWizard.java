@@ -122,8 +122,9 @@ public class NewWLCGModelWizard extends Wizard implements INewWizard {
         if (!getCurrentPerspectiveId().equals(PERSPECTIVE_ID)) {
             boolean confirm = MessageDialog.openConfirm(getShell(), "Palladio Perspective",
                     "This project is associated with the Palladio perspective.\n\nDo you want to open this perspective now?");
-            if (confirm)
+            if (confirm) {
                 openPalladioPerspective();
+            }
         }
 
         return true;
