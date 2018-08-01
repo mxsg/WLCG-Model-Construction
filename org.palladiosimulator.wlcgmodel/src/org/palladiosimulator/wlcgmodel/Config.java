@@ -6,7 +6,7 @@ package org.palladiosimulator.wlcgmodel;
  * @author Maximilian Stemmer-Grabow
  *
  */
-public class Config {
+public final class Config {
 
 
     /** The platform-relative directory that hold the blueprint simulation models. */
