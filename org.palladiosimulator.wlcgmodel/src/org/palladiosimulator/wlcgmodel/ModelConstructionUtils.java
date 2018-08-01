@@ -12,17 +12,28 @@ import org.palladiosimulator.pcm.parameter.ParameterFactory;
 import org.palladiosimulator.pcm.parameter.VariableCharacterisation;
 import org.palladiosimulator.pcm.parameter.VariableCharacterisationType;
 import org.palladiosimulator.pcm.parameter.VariableUsage;
+import org.palladiosimulator.pcm.seff.seff_performance.ParametricResourceDemand;
 
 import de.uka.ipd.sdq.stoex.StoexFactory;
 import de.uka.ipd.sdq.stoex.VariableReference;
 
 /**
- * @author Maximilian Stemmer-Grabow
+ * This utility class contains methods that simplify the construction of the calibrated Palladio model.
  *
+ * @author Maximilian Stemmer-Grabow
  */
 public class ModelConstructionUtils {
 
+    /**
+     * Create and return a value variable usage description with given name and specification.
+     *
+     * @param parameterName The name of the variable to be described.
+     * @param valueSpecification The specification for the variable.
+     * @return A variable usage description that describes the value of the provided variable.
+     */
     public static VariableUsage createVariableUsageWithValue(String parameterName, String valueSpecification) {
+
+        final VariableCharacterisationType characterisationType = VariableCharacterisationType.VALUE;
 
         VariableUsage result = ParameterFactory.eINSTANCE.createVariableUsage();
 
@@ -33,7 +44,7 @@ public class ModelConstructionUtils {
 
         VariableCharacterisation characterization = ParameterFactory.eINSTANCE.createVariableCharacterisation();
 
-        characterization.setType(VariableCharacterisationType.VALUE);
+        characterization.setType(characterisationType);
         characterization.setVariableUsage_VariableCharacterisation(result);
 
         PCMRandomVariable randomVariable = CoreFactory.eINSTANCE.createPCMRandomVariable();
@@ -49,7 +60,8 @@ public class ModelConstructionUtils {
      *
      * @param objects List of objects to be searched for the object with given ID.
      * @param id The ID of the object to be searched.
-     * @return
+     * @param <T> The type of the object to be searched for, which has to be an Ecore object.
+     * @return The found object, or null if there is no such object.
      */
     public static <T extends EObject> T findObjectWithId(List<T> objects, String id) {
         try {
@@ -66,7 +78,7 @@ public class ModelConstructionUtils {
      *
      * @param object The object to be recursively searched.
      * @param id The ID of the object to be searched for.
-     * @return
+     * @return The found object, or null if there is no such object.
      */
     public static EObject findObjectWithIdRecursively(EObject object, String id) {
 
@@ -87,12 +99,20 @@ public class ModelConstructionUtils {
         return null;
     }
 
+    /**
+     * Make a deep copy of the provided objects and change all IDs of objects contained in it
+     * via a containment reference.
+     *
+     * @param object The Ecore object to be copied.
+     * @param <T> The type of the object to be searched for, which has to be an Ecore object.
+     * @return A deep copy of the object where all IDs have been changed.
+     */
     public static <T extends EObject> T copyChangeIds(T object) {
 
-        // TODO This should return a deep copy including all containment references, is
-        // this accurate?
-        // TODO Maybe try this in a smaller setting to check?
+        // This returns a deep copy including all containment references
         T result = EcoreUtil.copy(object);
+
+        // Reset ID of the top-level object
         EcoreUtil.setID(result, EcoreUtil.generateUUID());
 
         TreeIterator<EObject> i = result.eAllContents();
@@ -100,11 +120,10 @@ public class ModelConstructionUtils {
             EObject obj = i.next();
 
             // Reset all IDs for contained objects that have IDs
-            // Todo What is the clean way to do this?
             try {
                 EcoreUtil.setID(obj, EcoreUtil.generateUUID());
             } catch (IllegalArgumentException e) {
-                // Object does not have ID, do not reset
+                // Object does not have ID, do not reset anything
             }
         }
         return result;
@@ -167,6 +186,30 @@ public class ModelConstructionUtils {
             EObject obj = i.next();
             appendToID(obj, suffix);
         }
+    }
+
+    /**
+     * Find and return the parametric resource demand that is contained in the supplied Ecore object.
+     *
+     * @param object The Ecore object to be searched in.
+     * @return The first parametric resource demand that could be found in a containment reference of the
+     * supplied object, or null if no such object could be found.
+     */
+    public static ParametricResourceDemand findParametricResourceDemand(EObject object) {
+        if (object == null) {
+            return null;
+        }
+
+        TreeIterator<EObject> j = object.eAllContents();
+        while (j.hasNext()) {
+            EObject obj = j.next();
+
+            if (obj instanceof ParametricResourceDemand) {
+                return (ParametricResourceDemand) obj;
+            }
+        }
+
+        return null;
     }
 
 }
