@@ -19,38 +19,39 @@ import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.handlers.HandlerUtil;
-import org.palladiosimulator.wlcgmodel.PCMModelImporter;
+import org.palladiosimulator.wlcgmodel.Config;
+import org.palladiosimulator.wlcgmodel.BlueprintModelImport;
 
 /**
- * Handle a context click and extract the project and file that has been
- * clicked. This class is adapted from
- * https://stackoverflow.com/questions/6892294/eclipse-plugin-how-to-get-the-path-to-the-currently-selected-project.
+ * Handle a context click and extract the project and file that has been clicked.
  *
+ * This class is adapted from
+ * https://stackoverflow.com/questions/6892294/eclipse-plugin-how-to-get-the-path-to-the-currently-selected-project
+ *
+ * @author Maximilian Stemmer-Grabow
  */
 public class NavigationPopupHandler extends AbstractHandler {
-
-    private static final String NODE_DESCRIPTION_FILENAME = "nodes.json";
-    private static final String JOBS_DESCRIPTION_FILENAME = "jobs.json";
 
     private IWorkbenchWindow window;
     private IWorkbenchPage activePage;
 
     private IProject selectedProject;
     private IResource selectedResource;
+
+    @SuppressWarnings("unused")
     private IFile selectedFile;
     private IFolder selectedFolder;
 
-    private String workspaceName;
-    private String projectName;
-    private String fileName;
-
+    /**
+     * Construct a new popup menu item handler.
+     */
     public NavigationPopupHandler() {
-        // Empty constructor
     }
 
+    @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
         // Get the project and file name from the initiating event if at all possible
-        if (!extractProjectAndFileFromInitiatingEvent(event)) {
+        if (!extractSelection(event)) {
             return null;
         }
 
@@ -60,8 +61,8 @@ public class NavigationPopupHandler extends AbstractHandler {
             return null;
         }
 
-        IFile iNodeDescription = selectedFolder.getFile(NODE_DESCRIPTION_FILENAME);
-        IFile iJobDescription = selectedFolder.getFile(JOBS_DESCRIPTION_FILENAME);
+        IFile iNodeDescription = selectedFolder.getFile(Config.NODE_DESCRIPTION_FILENAME);
+        IFile iJobDescription = selectedFolder.getFile(Config.JOBS_DESCRIPTION_FILENAME);
 
         if (!checkFileExists(iNodeDescription) || !checkFileExists(iJobDescription)) {
             // This already shows an error if a file is not found, so simply bail.
@@ -87,7 +88,8 @@ public class NavigationPopupHandler extends AbstractHandler {
         }
 
         try {
-            PCMModelImporter.importAndCompleteBlueprintModel(selectedProject, nodeDescriptionFile, jobDescriptionFile);
+            BlueprintModelImport.importAndCompleteBlueprintModel(selectedProject, Config.MODEL_BLUEPRINT_URI,
+                    nodeDescriptionFile, jobDescriptionFile);
         } catch (Exception e) {
             // TODO Show more meaningful error here
             showError("Error while completing the model:\n\n" + e.toString() + "\n" + e.getMessage());
@@ -99,6 +101,67 @@ public class NavigationPopupHandler extends AbstractHandler {
         return null;
     }
 
+    /**
+     * Extract the selected resource and its root project from the navigation popup execution event.
+     *
+     * @param event
+     *            The initiating selection event.
+     * @return True, if the selection could be successfully extracted, false otherwise.
+     */
+    private boolean extractSelection(ExecutionEvent event) {
+
+        // Get the active workbench page and the selection in it
+        this.window = HandlerUtil.getActiveWorkbenchWindow(event);
+        this.activePage = this.window.getActivePage();
+        ISelection selection = this.activePage.getSelection();
+
+        if (selection instanceof ITreeSelection) {
+            TreeSelection treeSelection = (TreeSelection) selection;
+            TreePath[] treePaths = treeSelection.getPaths();
+
+            if (treePaths.length == 0) {
+                showError("Nothing selected. Please select a folder with model parameters.");
+                return false;
+            }
+            TreePath treePath = treePaths[0];
+
+            // The first segment should be an IProject
+            Object firstSegmentObj = treePath.getFirstSegment();
+            this.selectedProject = ((IAdaptable) firstSegmentObj).getAdapter(IProject.class);
+            if (this.selectedProject == null) {
+                showError("Invalid selection. Could not retrieve selected project.");
+                return false;
+            }
+
+            // The last segment should be an IResource
+            Object lastSegmentObj = treePath.getLastSegment();
+            this.selectedResource = ((IAdaptable) lastSegmentObj).getAdapter(IResource.class);
+            if (this.selectedResource == null) {
+                showError("Invalid selection. Could not retrieve selected item.");
+                return false;
+            }
+
+            // Get file and folder reference from selected resource
+            this.selectedFile = ((IAdaptable) lastSegmentObj).getAdapter(IFile.class);
+            this.selectedFolder = ((IAdaptable) lastSegmentObj).getAdapter(IFolder.class);
+
+            return true;
+
+        } else {
+            showError("Selection error. Unexpected selection class.");
+
+            return false;
+        }
+    }
+
+    /**
+     * Convenience method to check whether the supplied file exists. Shows an error dialog in case
+     * the check fails.
+     *
+     * @param file
+     *            The file to check for existence.
+     * @return True if the file exists, else false.
+     */
     private boolean checkFileExists(IFile file) {
 
         if (!file.exists()) {
@@ -108,94 +171,16 @@ public class NavigationPopupHandler extends AbstractHandler {
         return true;
     }
 
+    /**
+     * Show an error popup with the supplied error message.
+     *
+     * @param message
+     *            The message to show.
+     */
     private void showError(String message) {
         if (message == null || message.length() == 0) {
             message = "An error occured.";
         }
         MessageDialog.openError(this.window.getShell(), "Model Completion Error", message);
-    }
-
-    // TODO Catch index out of bounds exception when user did not select anything
-    private boolean extractProjectAndFileFromInitiatingEvent(ExecutionEvent event) {
-        this.window = HandlerUtil.getActiveWorkbenchWindow(event);
-        // Get the active WorkbenchPage
-        this.activePage = this.window.getActivePage();
-
-        // Get the Selection from the active WorkbenchPage page
-        ISelection selection = this.activePage.getSelection();
-        if (selection instanceof ITreeSelection) {
-            TreeSelection treeSelection = (TreeSelection) selection;
-            TreePath[] treePaths = treeSelection.getPaths();
-
-            if (treePaths.length == 0) {
-                MessageDialog.openError(this.window.getShell(), "Nothing selected",
-                        "Please select a folder with model parameters.");
-                return false;
-            }
-            TreePath treePath = treePaths[0];
-
-            // The TreePath contains a series of segments in our usage:
-            // o The first segment is usually a project
-            // o The last segment generally refers to the file
-
-            // The first segment should be a IProject
-            Object firstSegmentObj = treePath.getFirstSegment();
-            this.selectedProject = (IProject) ((IAdaptable) firstSegmentObj).getAdapter(IProject.class);
-            if (this.selectedProject == null) {
-                MessageDialog.openError(this.window.getShell(), "Navigator Popup", getClassHierarchyAsMsg(
-                        "Expected the first segment to be IAdapatable to an IProject.\nBut got the following class hierarchy instead.",
-                        "Make sure to directly select a file.", firstSegmentObj));
-                return false;
-            }
-
-            // The last segment should be an IResource
-            Object lastSegmentObj = treePath.getLastSegment();
-            this.selectedResource = (IResource) ((IAdaptable) lastSegmentObj).getAdapter(IResource.class);
-            if (this.selectedResource == null) {
-                MessageDialog.openError(this.window.getShell(), "Navigator Popup", getClassHierarchyAsMsg(
-                        "Expected the last segment to be IAdapatable to an IResource.\nBut got the following class hierarchy instead.",
-                        "Make sure to directly select a file.", firstSegmentObj));
-                return false;
-            }
-
-            // TODO Clean up this code
-
-            // As the last segment is an IResource we should be able to get an IFile
-            // reference from it
-            this.selectedFile = (IFile) ((IAdaptable) lastSegmentObj).getAdapter(IFile.class);
-            this.selectedFolder = (IFolder) ((IAdaptable) lastSegmentObj).getAdapter(IFolder.class);
-
-            // Extract additional information from the IResource and IProject
-            this.workspaceName = this.selectedResource.getWorkspace().getRoot().getLocation().toOSString();
-            this.projectName = this.selectedProject.getName();
-            this.fileName = this.selectedResource.getName();
-
-            return true;
-        } else {
-            String selectionClass = selection.getClass().getSimpleName();
-            MessageDialog.openError(this.window.getShell(), "Unexpected Selection Class", String
-                    .format("Expected a TreeSelection but got a %s instead.\nProcessing Terminated.", selectionClass));
-        }
-
-        return false;
-    }
-
-    @SuppressWarnings("rawtypes")
-    private static String getClassHierarchyAsMsg(String msgHeader, String msgTrailer, Object theObj) {
-        String msg = msgHeader + "\n\n";
-
-        Class theClass = theObj.getClass();
-        while (theClass != null) {
-            msg = msg + String.format("Class=%s\n", theClass.getName());
-            Class[] interfaces = theClass.getInterfaces();
-            for (Class theInterface : interfaces) {
-                msg = msg + String.format("    Interface=%s\n", theInterface.getName());
-            }
-            theClass = theClass.getSuperclass();
-        }
-
-        msg = msg + "\n" + msgTrailer;
-
-        return msg;
     }
 }
