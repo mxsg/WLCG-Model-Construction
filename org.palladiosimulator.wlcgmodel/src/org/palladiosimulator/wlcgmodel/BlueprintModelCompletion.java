@@ -68,7 +68,7 @@ import org.palladiosimulator.pcmmeasuringpoint.SystemOperationMeasuringPoint;
  *
  * @author Maximilian Stemmer-Grabow
  */
-public class PCMModelCompletion {
+public class BlueprintModelCompletion {
 
     // Required model files for completion
     private static final String REPO_MODEL_FILENAME = "jobs.repository";
@@ -109,7 +109,7 @@ public class PCMModelCompletion {
     /**
      * Create a simulation model construction object.
      */
-    public PCMModelCompletion() {
+    public BlueprintModelCompletion() {
     }
 
     /**

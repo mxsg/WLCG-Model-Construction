@@ -23,6 +23,10 @@ import org.palladiosimulator.commons.eclipseutils.FileHelper;
 
 import com.google.gson.JsonSyntaxException;
 
+/**
+ * @author Maximilian Stemmer-Grabow
+ *
+ */
 public class PCMModelImporter {
 
     public static boolean importAndCompleteBlueprintModel(IProject project, File nodeDescriptionFile,
@@ -74,7 +78,7 @@ public class PCMModelImporter {
         // Compute project location
         URI projectURI = URI.createURI(project.getFullPath().toString());
 
-        PCMModelCompletion completion = new PCMModelCompletion();
+        BlueprintModelCompletion completion = new BlueprintModelCompletion();
 
         completion.completeModels(projectURI, nodes, jobs);
         return true;

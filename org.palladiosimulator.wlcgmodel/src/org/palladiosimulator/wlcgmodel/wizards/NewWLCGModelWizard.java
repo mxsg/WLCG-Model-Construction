@@ -40,7 +40,7 @@ import org.eclipse.ui.dialogs.WizardNewProjectCreationPage;
 import org.eclipse.ui.wizards.newresource.BasicNewProjectResourceWizard;
 import org.palladiosimulator.commons.eclipseutils.FileHelper;
 import org.palladiosimulator.wlcgmodel.Config;
-import org.palladiosimulator.wlcgmodel.PCMModelCompletion;
+import org.palladiosimulator.wlcgmodel.BlueprintModelCompletion;
 
 /**
  * A wizard to create a new calibrated WLCG model.
@@ -174,7 +174,7 @@ public class NewWLCGModelWizard extends Wizard implements INewWizard {
                     SubMonitor.convert(monitor, "Creating model files", 2000));
 
             /* Construct models and load into project */
-            PCMModelCompletion importer = new PCMModelCompletion();
+            BlueprintModelCompletion importer = new BlueprintModelCompletion();
 
             // Compute project location
             URI projectURI = URI.createURI(projectHandle.getFullPath().toString());
