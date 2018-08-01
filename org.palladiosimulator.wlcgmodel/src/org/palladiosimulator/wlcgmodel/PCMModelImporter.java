@@ -65,7 +65,7 @@ public class PCMModelImporter {
         // Copying original blueprint to project location
         //
         try {
-            copyModelsToProject(computeBlueprintPath(), project, null);
+            addToProject(computeBlueprintPath(), project, null);
         } catch (CoreException e) {
             System.out.println("Something went wrong when importing blueprint model files.");
             return false;
@@ -78,13 +78,6 @@ public class PCMModelImporter {
 
         completion.completeModels(projectURI, nodes, jobs);
         return true;
-    }
-
-    // The following methods are adapted from the Palladio project creation wizard.
-
-    private static void copyModelsToProject(final URI path, final IContainer target, final SubMonitor subMonitor)
-            throws CoreException {
-        addToProject(path, target, subMonitor);
     }
 
     private static void addToProject(final URI path, final IContainer target, final SubMonitor subMonitor)
@@ -132,7 +125,7 @@ public class PCMModelImporter {
 
     /**
      * Throw a core exception based on a given error message.
-     * 
+     *
      * @param message
      *            The message to present.
      * @throws CoreException
@@ -142,5 +135,4 @@ public class PCMModelImporter {
         final IStatus status = new Status(IStatus.ERROR, "org.palladiosimulator.wlcgmodel", IStatus.OK, message, null);
         throw new CoreException(status);
     }
-
 }
