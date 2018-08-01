@@ -68,7 +68,7 @@ import org.palladiosimulator.pcmmeasuringpoint.SystemOperationMeasuringPoint;
  *
  * @author Maximilian Stemmer-Grabow
  */
-public class BlueprintModelCompletion {
+public class WLCGModelConstructor {
 
     // Required model files for completion
     private static final String REPO_MODEL_FILENAME = "jobs.repository";
@@ -109,7 +109,7 @@ public class BlueprintModelCompletion {
     /**
      * Create a simulation model construction object.
      */
-    public BlueprintModelCompletion() {
+    public WLCGModelConstructor() {
     }
 
     /**
@@ -133,7 +133,7 @@ public class BlueprintModelCompletion {
             System.out.println("Something went wrong when importing node types! Error: " + e);
         }
 
-        String jobTypeDescriptionPath = parameterPath.appendSegment(Config.JOB_DESCRIPTION_FILENAME).toString();
+        String jobTypeDescriptionPath = parameterPath.appendSegment(Config.JOBS_DESCRIPTION_FILENAME).toString();
         File jobDescriptionFile = FileHelper.getFile(jobTypeDescriptionPath);
         List<JobTypeDescription> jobs = new ArrayList<>();
         try {
