@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.emf.common.util.TreeIterator;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -45,16 +44,9 @@ import org.palladiosimulator.pcm.resourceenvironment.ResourceEnvironment;
 import org.palladiosimulator.pcm.seff.AbstractAction;
 import org.palladiosimulator.pcm.seff.BranchAction;
 import org.palladiosimulator.pcm.seff.ForkAction;
-import org.palladiosimulator.pcm.seff.ForkedBehaviour;
-import org.palladiosimulator.pcm.seff.GuardedBranchTransition;
 import org.palladiosimulator.pcm.seff.InternalAction;
-import org.palladiosimulator.pcm.seff.ResourceDemandingBehaviour;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
-import org.palladiosimulator.pcm.seff.SeffFactory;
 import org.palladiosimulator.pcm.seff.ServiceEffectSpecification;
-import org.palladiosimulator.pcm.seff.StartAction;
-import org.palladiosimulator.pcm.seff.StopAction;
-import org.palladiosimulator.pcm.seff.SynchronisationPoint;
 import org.palladiosimulator.pcm.seff.seff_performance.ParametricResourceDemand;
 import org.palladiosimulator.pcm.usagemodel.Branch;
 import org.palladiosimulator.pcm.usagemodel.BranchTransition;
@@ -67,8 +59,21 @@ import org.palladiosimulator.pcmmeasuringpoint.EntryLevelSystemCallMeasuringPoin
 import org.palladiosimulator.pcmmeasuringpoint.PcmmeasuringpointFactory;
 import org.palladiosimulator.pcmmeasuringpoint.SystemOperationMeasuringPoint;
 
+/**
+ * Instances of this class can be used to calibrate Palladio simulation models by constructing them
+ * from a blueprint Palladio model using model construction parameter objects.
+ *
+ * TODO Future work: Decouple model construction and blueprint model from model calibration plugin
+ * and UI elements.
+ *
+ * TODO Future work: Split completion of the different models (may overcomplicate construction due
+ * to interdependence between the models).
+ *
+ * @author Maximilian Stemmer-Grabow
+ */
 public class PCMModelCompletion {
 
+    // Required model files for completion
     private static final String REPO_MODEL_FILENAME = "jobs.repository";
     private static final String SYSTEM_MODEL_FILENAME = "jobs.system";
     private static final String RESOURCE_ENVIRONMENT_MODEL_FILENAME = "nodes.resourceenvironment";
@@ -78,17 +83,14 @@ public class PCMModelCompletion {
     private static final String MEASURINGPOINT_REPOSITORY_FILENAME = "measuringpoints.measuringpoint";
     private static final String MONITOR_REPOSITORY_FILENAME = "wlcg.monitorrepository";
 
+    // IDs for the model elements used during construction
     private static final String COMPUTE_JOB_COMPOSITE_COMPONENT_ID = "WLCGBlueprint_computeJobCompositeComponent";
     private static final String BLUEPRINT_JOB_COMPONENT_ID = "WLCGBlueprint_blueprintJobComponent";
     private static final String BLUEPRINT_JOB_SEFF = "WLCGBlueprint_runBlueprintJobSEFF";
-    // private static final String BLUEPRINT_JOB_SEFF_INTERNAL_ACTION =
-    // "WLCGBlueprint_runBlueprintJobSEFF_internalAction";
     private static final String BLUEPRINT_JOB_CPU_ACTION = "WLCGBlueprint_runBlueprintJobSEFF_cpuAction";
     private static final String BLUEPRINT_JOB_IO_ACTION = "WLCGBlueprint_runBlueprintJobSEFF_ioAction";
     private static final String BLUEPRINT_JOB_FORK = "WLCGBlueprint_runBlueprintJobSEFF_forkAction";
 
-    // private static final String BLUEPRINT_JOB_SEFF_INTERNAL_CPU_RESOURCE_TYPE =
-    // "WLCGBlueprint_runBlueprintJobSEFF_cpu_resourcetype";
     private static final String COMPUTE_ASSEMBLY_CONTEXT_SYSTEM = "WLCGBlueprint_computeJobAssemblyContextSystem";
     private static final String BLUEPRINT_NODE = "WLCGBlueprint_blueprintNode";
     private static final String BLUEPRINT_CPU = "WLCGBlueprint_blueprintCPU";
@@ -100,7 +102,7 @@ public class PCMModelCompletion {
     private static final String BLUEPRINT_ENTRY_LEVEL_SYSTEM_CALL = "WLCGBlueprint_blueprintEntryLevelSystemCall";
     private static final String BLUEPRINT_USAGEMODEL_BRANCH_JOBTYPE = "branchUsageModelJobtype";
 
-    // Used for holding model elements that are later needed to connect models
+    // Used for holding model elements that are needed to connect models
     private Map<String, OperationInterface> jobInterfaces = new HashMap<>();
     private Map<String, OperationProvidedRole> providedRolesComputeJobAssembly = new HashMap<>();
     private Map<String, OperationProvidedRole> providedRolesSystem = new HashMap<>();
@@ -109,23 +111,71 @@ public class PCMModelCompletion {
     private List<ResourceContainer> resourceContainerTypes = new ArrayList<>();
     private AssemblyContext computeJobAssembly = null;
 
+    /**
+     * Create a simulation model construction object.
+     */
     public PCMModelCompletion() {
     }
 
+    /**
+     * Load model calibration parameters from a directory and use them to complete the simulation
+     * model from a model blueprint. Models are modified and completed inplace.
+     *
+     * @param modelsPath
+     *            The path to the directory the blueprint models are stored in.
+     * @param parameterPath
+     *            The path to the directory the model parameter files are stored in.
+     */
+    public void loadParametersAndCompleteModels(final URI modelsPath, final URI parameterPath) {
+        // Find parameter files and import data
+        String nodeDescriptionPath = parameterPath.appendSegment(Config.NODE_DESCRIPTION_FILENAME).toString();
+        File nodeDescriptionFile = FileHelper.getFile(nodeDescriptionPath);
+
+        List<NodeTypeDescription> nodes = new ArrayList<>();
+        try {
+            nodes = ParameterJSONImportHelper.readNodeTypes(nodeDescriptionFile);
+        } catch (Exception e) {
+            System.out.println("Something went wrong when importing node types! Error: " + e);
+        }
+
+        String jobTypeDescriptionPath = parameterPath.appendSegment(Config.JOB_DESCRIPTION_FILENAME).toString();
+        File jobDescriptionFile = FileHelper.getFile(jobTypeDescriptionPath);
+        List<JobTypeDescription> jobs = new ArrayList<>();
+        try {
+            jobs = ParameterJSONImportHelper.readJobTypes(jobDescriptionFile);
+        } catch (Exception e) {
+            System.out.println("Something went wrong when importing jobs types! Error: " + e);
+        }
+
+        // Attempt to complete models
+        completeModels(modelsPath, nodes, jobs);
+
+    }
+
+    /**
+     * Complete simulation models from node and job type descriptions. This inserts job types into
+     * the models and creates a resource environment from the node type descriptions provided.
+     * Models are completed inplace.
+     *
+     * @param modelsPath
+     *            The path to the models to be completed. These are changed inplace.
+     * @param nodes
+     *            The list of node types to be inserted into the model.
+     * @param jobs
+     *            The list of job types to be inserted into the model.
+     */
     public void completeModels(final URI modelsPath, List<NodeTypeDescription> nodes, List<JobTypeDescription> jobs) {
 
-        // For now, only import the repository model
-        URI repositoryPath = modelsPath.appendSegment(REPO_MODEL_FILENAME);
-
         ResourceSet resourceSet = new ResourceSetImpl();
+
+        URI repositoryPath = modelsPath.appendSegment(REPO_MODEL_FILENAME);
         Resource repositoryResource = resourceSet.getResource(repositoryPath, true);
         Repository repository = (Repository) repositoryResource.getContents().get(0);
 
-        // Complete repository model
+        // Complete the repository model
+        this.completeRepositoryModel(repository, jobs);
 
-        completeRepositoryModel(repository, jobs);
-
-        // Get monitor repositories
+        // Load monitor repositories
         URI measuringpointPath = modelsPath.appendSegment(MONITOR_DIRECTORY_NAME)
                 .appendSegment(MEASURINGPOINT_REPOSITORY_FILENAME);
         Resource measuringpointResource = resourceSet.getResource(measuringpointPath, true);
@@ -136,17 +186,132 @@ public class PCMModelCompletion {
         Resource monitorResource = resourceSet.getResource(monitorPath, true);
         MonitorRepository monitorRepo = (MonitorRepository) monitorResource.getContents().get(0);
 
-        // Complete system model
-
+        // Complete the system model
         Resource systemResource = resourceSet.getResource(modelsPath.appendSegment(SYSTEM_MODEL_FILENAME), true);
         org.palladiosimulator.pcm.system.System system = (org.palladiosimulator.pcm.system.System) systemResource
                 .getContents().get(0);
 
+        this.completeSystemModel(system, jobs, monitorRepo, measuringPointRepo);
+
+        // Load and complete resource environment
+        Resource resourceEnvironmentResource = resourceSet
+                .getResource(modelsPath.appendSegment(RESOURCE_ENVIRONMENT_MODEL_FILENAME), true);
+        ResourceEnvironment resEnv = (ResourceEnvironment) resourceEnvironmentResource.getContents().get(0);
+
+        this.completeResourceEnvironment(resEnv, nodes, monitorRepo, measuringPointRepo);
+
+        // Complete the Usage Model
+        Resource usageModelResource = resourceSet.getResource(modelsPath.appendSegment(USAGE_MODEL_FILENAME), true);
+        UsageModel usageModel = (UsageModel) usageModelResource.getContents().get(0);
+
+        // Retrieve usage scenario response time monitor
+        List<Monitor> allMonitors = monitorRepo.getMonitors();
+        Monitor blueprintResponseTimeMonitor = ModelConstructionUtils.findObjectWithId(allMonitors,
+                BLUEPRINT_SYSTEM_CALL_MONITOR);
+
+        if (blueprintResponseTimeMonitor == null) {
+            throw new IllegalArgumentException("Invalid monitor repository, missing entry level system call monitor.");
+        }
+
+        completeUsageModel(usageModel, jobs, blueprintResponseTimeMonitor, monitorRepo, measuringPointRepo);
+
+        // Remove blueprint monitor from monitor repository
+        blueprintResponseTimeMonitor.setMonitorRepository(null);
+
+        // Complete Allocation Model
+        Resource allocationModelResource = resourceSet.getResource(modelsPath.appendSegment(ALLOCATION_MODEL_FILENAME),
+                true);
+        Allocation allocation = (Allocation) allocationModelResource.getContents().get(0);
+
+        for (ResourceContainer nodeType : resourceContainerTypes) {
+
+            AllocationContext context = AllocationFactory.eINSTANCE.createAllocationContext();
+
+            context.setResourceContainer_AllocationContext(nodeType);
+            context.setAssemblyContext_AllocationContext(computeJobAssembly);
+
+            context.setAllocation_AllocationContext(allocation);
+        }
+
+        // Save all modified models
+        try {
+            repositoryResource.save(null);
+            systemResource.save(null);
+            resourceEnvironmentResource.save(null);
+            usageModelResource.save(null);
+            allocationModelResource.save(null);
+            measuringpointResource.save(null);
+            monitorResource.save(null);
+        } catch (IOException e) {
+            System.out.println("Error while saving resources, e: " + e);
+        }
+    }
+
+    /**
+     * Complete the repository model by inserting components for each job type that is supplied in
+     * the list of job type descriptions.
+     *
+     * @param repository
+     *            The repository model the jobs should be inserted into.
+     * @param jobTypes
+     *            The job types to be inserted.
+     */
+    private void completeRepositoryModel(Repository repository, List<JobTypeDescription> jobTypes) {
+
+        List<RepositoryComponent> components = repository.getComponents__Repository();
+
+        CompositeComponent computeJob = (CompositeComponent) ModelConstructionUtils.findObjectWithId(components,
+                COMPUTE_JOB_COMPOSITE_COMPONENT_ID);
+
+        BasicComponent blueprintJob = (BasicComponent) ModelConstructionUtils.findObjectWithId(components,
+                BLUEPRINT_JOB_COMPONENT_ID);
+
+        List<Stereotype> blueprintStereotypes = StereotypeAPI.getAppliedStereotypes(blueprintJob);
+
+        Stereotype middlewareDependencyStereotype = blueprintStereotypes.stream()
+                .filter(stereotype -> "MiddlewareDependency".equals(stereotype.getName())).findAny().orElse(null);
+
+        if (middlewareDependencyStereotype == null) {
+            throw new IllegalArgumentException("Invalid model blueprint, missing middleware dependency stereotype!");
+        }
+
+        ServiceEffectSpecification seff = ModelConstructionUtils
+                .findObjectWithId(blueprintJob.getServiceEffectSpecifications__BasicComponent(), BLUEPRINT_JOB_SEFF);
+
+        if (seff == null) {
+            throw new IllegalArgumentException("Invalid model blueprint!");
+        }
+
+        ResourceDemandingSEFF resourceSeff = (ResourceDemandingSEFF) seff;
+
+        for (JobTypeDescription job : jobTypes) {
+            System.out.println("Adding job type to repository: " + job.getTypeName());
+            buildAndAddJobComponentWithProvidedInterface(repository, job, resourceSeff, computeJob,
+                    middlewareDependencyStereotype);
+        }
+    }
+
+    /**
+     * Complete the system model by connecting roles and interfaces associated to the inserted job
+     * types from the repository model.
+     *
+     * @param system
+     *            The system model.
+     * @param jobs
+     *            The descriptions of included job types.
+     * @param monitorRepo
+     *            The monitor repository model.
+     * @param measuringPointRepo
+     *            The measuring point repository model.
+     */
+    private void completeSystemModel(org.palladiosimulator.pcm.system.System system, List<JobTypeDescription> jobs,
+            MonitorRepository monitorRepo, MeasuringPointRepository measuringPointRepo) {
+
         List<AssemblyContext> systemAssemblies = system.getAssemblyContexts__ComposedStructure();
-        AssemblyContext computeAssembly = (AssemblyContext) ModelConstructionUtils.findObjectWithId(systemAssemblies,
+        AssemblyContext computeAssembly = ModelConstructionUtils.findObjectWithId(systemAssemblies,
                 COMPUTE_ASSEMBLY_CONTEXT_SYSTEM);
 
-        // Add for later use
+        // Used later to connect interfaces with usage model
         this.computeJobAssembly = computeAssembly;
 
         for (JobTypeDescription jobDescription : jobs) {
@@ -163,7 +328,7 @@ public class PCMModelCompletion {
             this.providedRolesSystem.put(jobTypeName, role);
             role.setProvidingEntity_ProvidedRole(system);
 
-            // Create measuring point for each system operation
+            // Create a measuring point for each system operation
 
             SystemOperationMeasuringPoint systemOperationMp = PcmmeasuringpointFactory.eINSTANCE
                     .createSystemOperationMeasuringPoint();
@@ -199,12 +364,23 @@ public class PCMModelCompletion {
             // Add connector to system model
             connector.setParentStructure__Connector(system);
         }
+    }
 
-        // Complete Resource Environment
-
-        Resource resourceEnvironmentResource = resourceSet
-                .getResource(modelsPath.appendSegment(RESOURCE_ENVIRONMENT_MODEL_FILENAME), true);
-        ResourceEnvironment resEnv = (ResourceEnvironment) resourceEnvironmentResource.getContents().get(0);
+    /**
+     * Complete the resource environment by inserting the node types included in the node type list.
+     * Also duplicate measuring points and monitors for each added node type.
+     *
+     * @param resEnv
+     *            The resource environment to complete.
+     * @param nodes
+     *            A list of node types to be included in the resource environment.
+     * @param monitorRepo
+     *            The monitor repository the duplicated monitors should be added to.
+     * @param measuringPointRepo
+     *            The measuring point repository the duplicated measuring points should be added to.
+     */
+    private void completeResourceEnvironment(ResourceEnvironment resEnv, List<NodeTypeDescription> nodes,
+            MonitorRepository monitorRepo, MeasuringPointRepository measuringPointRepo) {
 
         List<ResourceContainer> resourceContainers = resEnv.getResourceContainer_ResourceEnvironment();
         ResourceContainer blueprintContainer = ModelConstructionUtils.findObjectWithId(resourceContainers,
@@ -276,8 +452,8 @@ public class PCMModelCompletion {
             addMeasuringpointsAndMonitors(measuringPointRepo, monitorRepo, cpuResourceSpec, blueprintCpuMonitor,
                     nodeTypeName);
 
-            // Do not forget to change all IDs for the copied objects
-            ModelConstructionUtils.changeIds(newNode);
+            // Change all IDs for the copied objects to avoid conflicts
+            ModelConstructionUtils.setRandomIDsRecursively(newNode);
 
             // Add new resource container to tracked resource containers
             this.resourceContainerTypes.add(newNode);
@@ -288,7 +464,6 @@ public class PCMModelCompletion {
             // Add stereotypes for Architectural Template Application
             // This needs to be done last so that the new node is already included in a
             // resource
-            // TODO Put this elsewhere, move all AT application code together!
             StereotypeAPI.applyStereotype(newNode, loadBalancedResourceContainerStereotype);
 
             // Set duplication number to correct value
@@ -298,122 +473,26 @@ public class PCMModelCompletion {
             StereotypeAPI.applyStereotype(newNode, middlewareHostStereotype);
             StereotypeAPI.setTaggedValue(newNode, nodeType.getJobslots(), "MiddlewareHost", "capacity");
         }
-
-        // Load and complete the Usage Model
-        Resource usageModelResource = resourceSet.getResource(modelsPath.appendSegment(USAGE_MODEL_FILENAME), true);
-        UsageModel usageModel = (UsageModel) usageModelResource.getContents().get(0);
-        completeUsageModel(usageModel, jobs, blueprintResponseTimeMonitor, monitorRepo, measuringPointRepo);
-
-        // Remove blueprint monitor from monitor repository
-        blueprintResponseTimeMonitor.setMonitorRepository(null);
-
-        // Complete Allocation Model
-
-        Resource allocationModelResource = resourceSet.getResource(modelsPath.appendSegment(ALLOCATION_MODEL_FILENAME),
-                true);
-        Allocation allocation = (Allocation) allocationModelResource.getContents().get(0);
-
-        for (ResourceContainer nodeType : resourceContainerTypes) {
-
-            AllocationContext context = AllocationFactory.eINSTANCE.createAllocationContext();
-
-            context.setResourceContainer_AllocationContext(nodeType);
-            context.setAssemblyContext_AllocationContext(computeJobAssembly);
-
-            context.setAllocation_AllocationContext(allocation);
-        }
-
-        // Save all resources and models
-        try {
-            repositoryResource.save(null);
-            systemResource.save(null);
-            resourceEnvironmentResource.save(null);
-            usageModelResource.save(null);
-            allocationModelResource.save(null);
-            measuringpointResource.save(null);
-            monitorResource.save(null);
-        } catch (IOException e) {
-            System.out.println("Error while saving resources, e: " + e);
-        }
     }
 
-    public void loadParametersAndCompleteModels(final URI modelsPath, final URI parameterPath) {
-        // final URI parameterPath, final IContainer target
-
-        // Find parameter files and import data
-
-        String nodeDescriptionPath = parameterPath.appendSegment(Config.NODE_DESCRIPTION_FILENAME).toString();
-        File nodeDescriptionFile = FileHelper.getFile(nodeDescriptionPath);
-
-        List<NodeTypeDescription> nodes = new ArrayList<>();
-        try {
-            nodes = ParameterJSONImportHelper.readNodeTypes(nodeDescriptionFile);
-        } catch (Exception e) {
-            System.out.println("Something went wrong when importing node types! E: " + e);
-        }
-
-        String jobTypeDescriptionPath = parameterPath.appendSegment(Config.JOB_DESCRIPTION_FILENAME).toString();
-        File jobDescriptionFile = FileHelper.getFile(jobTypeDescriptionPath);
-        List<JobTypeDescription> jobs = new ArrayList<>();
-        try {
-            jobs = ParameterJSONImportHelper.readJobTypes(jobDescriptionFile);
-        } catch (Exception e) {
-            System.out.println("Something went wrong when importing jobs types! E: " + e);
-        }
-
-        // Attempt to actually complete models
-        completeModels(modelsPath, nodes, jobs);
-
-    }
-
-    public void completeRepositoryModel(Repository repository, List<JobTypeDescription> jobTypes) {
-
-        List<RepositoryComponent> components = repository.getComponents__Repository();
-
-        // TODO include more checks for correct model structure
-        CompositeComponent computeJob = (CompositeComponent) ModelConstructionUtils.findObjectWithId(components,
-                COMPUTE_JOB_COMPOSITE_COMPONENT_ID);
-
-        BasicComponent blueprintJob = (BasicComponent) ModelConstructionUtils.findObjectWithId(components,
-                BLUEPRINT_JOB_COMPONENT_ID);
-        // System.out.println("Found basic Component: " +
-        // EcoreUtil.getID(blueprintJob));
-
-        // Find blueprint stereotypes
-
-        List<Stereotype> blueprintStereotypes = StereotypeAPI.getAppliedStereotypes(blueprintJob);
-
-        Stereotype middlewareDependencyStereotype = blueprintStereotypes.stream()
-                .filter(stereotype -> "MiddlewareDependency".equals(stereotype.getName())).findAny().orElse(null);
-
-        if (middlewareDependencyStereotype == null) {
-            throw new IllegalArgumentException("Invalid model blueprint, missing middleware dependency stereotype!");
-        }
-
-        ServiceEffectSpecification seff = ModelConstructionUtils
-                .findObjectWithId(blueprintJob.getServiceEffectSpecifications__BasicComponent(), BLUEPRINT_JOB_SEFF);
-
-        // TODO Throw more meaningful exception to catch when calling this and notify
-        // user about invalid model
-        if (seff == null) {
-            throw new IllegalArgumentException("Invalid model blueprint!");
-        }
-
-        ResourceDemandingSEFF resourceSeff = (ResourceDemandingSEFF) seff;
-
-        // buildJobSEFF(resourceSeff, "test", jobTypes.get(0));
-
-        for (JobTypeDescription job : jobTypes) {
-            System.out.println("Adding job type to repository: " + job.getTypeName());
-            buildAndAddJobComponentWithProvidedInterface(repository, job, resourceSeff, computeJob,
-                    middlewareDependencyStereotype);
-        }
-
-        // BasicComponent copyJob = EcoreUtil.copy(blueprintJob);
-        // System.out.println("ID of copy: " + EcoreUtil.getID(copyJob));
-    }
-
-    public void completeUsageModel(UsageModel usageModel, List<JobTypeDescription> jobs, Monitor responseTimeMonitor,
+    /**
+     * Complete the usage scenario by adding a branch for each job type in the provided list into
+     * the usage model. Also add measuring points and monitors for response time of each of the
+     * added job types.
+     *
+     * @param usageModel
+     *            The usage model to be completed.
+     * @param jobs
+     *            A list of job types to be inserted into the
+     * @param responseTimeMonitor
+     *            The blueprint monitor to be duplicated for response time measurements.
+     * @param monitorRepo
+     *            The monitor repository the created monitors are to be inserted into.
+     * @param measuringpointRepo
+     *            The measuring point repository the created measuring points are to be inserted
+     *            into.
+     */
+    private void completeUsageModel(UsageModel usageModel, List<JobTypeDescription> jobs, Monitor responseTimeMonitor,
             MonitorRepository monitorRepo, MeasuringPointRepository measuringpointRepo) {
 
         List<UsageScenario> usageScenarios = usageModel.getUsageScenario_UsageModel();
@@ -431,13 +510,7 @@ public class PCMModelCompletion {
             throw new IllegalArgumentException("Invalid Usage Model: Could not find job type branch!");
         }
 
-        // ScenarioBehaviour behaviour =
-        // blueprintUsageScenario.getScenarioBehaviour_UsageScenario();
-        // List<AbstractUserAction> actions = behaviour.getActions_ScenarioBehaviour();
-        // Branch jobtypeBranch = findObjectWithId(actions,
-        // BLUEPRINT_USAGEMODEL_BRANCH_JOBTYPE);
-
-        // Blueprint only has one branch transition
+        // The blueprint model only has one branch transition
         BranchTransition blueprintTransition = null;
         List<BranchTransition> blueprintTransitionList = jobtypeBranch.getBranchTransitions_Branch();
 
@@ -451,8 +524,9 @@ public class PCMModelCompletion {
 
             BranchTransition newTransition = EcoreUtil.copy(blueprintTransition);
 
+            // TODO Maybe normalize or check the values here again in case of invalid JSON data?
+
             // Set correct branch probability
-            // TODO Maybe normalize the values here again in case of invalid JSON data?
             newTransition.setBranchProbability(jobType.getRelativeFrequency());
 
             ScenarioBehaviour blueprintBehaviour = blueprintTransition.getBranchedBehaviour_BranchTransition();
@@ -470,24 +544,45 @@ public class PCMModelCompletion {
             systemCall.setOperationSignature__EntryLevelSystemCall(jobSignatures.get(jobTypeName));
             systemCall.setProvidedRole_EntryLevelSystemCall(providedRolesSystem.get(jobTypeName));
 
-            // For now, do not add system call monitor and measuring points
+            // For now, do not add system call monitor and measuring points.
+            // Measurement functionality is instead provided by the measuring points located in the
+            // system model.
+
             // addSystemCallMonitor(measuringpointRepo, monitorRepo, systemCall,
             // responseTimeMonitor, jobTypeName);
 
-            // In the end, change all IDs for the new branch transition
+            // Change all IDs for the new branch transition
             ModelConstructionUtils.appendIDsRecursively(newTransition, jobTypeName);
 
             newTransition.setBranch_BranchTransition(jobtypeBranch);
         }
 
-        // Remove blueprint branch transition from the usage model.
-        // This is important to not alter the generated load profile.
+        // Remove blueprint branch transition from the usage model. This is important to not alter
+        // the generated load profile.
         blueprintTransition.setBranch_BranchTransition(null);
     }
 
-    public void addMeasuringpointsAndMonitors(MeasuringPointRepository measuringPointRepo,
+    /**
+     * Duplicate the measuring points and monitors for each core of the provided processing spec.
+     *
+     * @param measuringPointRepo
+     *            The repository the duplicated measuring point should be inserted into.
+     * @param monitorRepo
+     *            The repository the duplicated monitors should be inserted into.
+     * @param processingSpec
+     *            The processing spec to be equipped with measuring points and monitors.
+     * @param originalMonitor
+     *            The blueprint monitor used to duplicate monitors.
+     * @param additionalSuffix
+     *            An additional suffix to be included in the IDs of the duplicated monitors.
+     */
+    private void addMeasuringpointsAndMonitors(MeasuringPointRepository measuringPointRepo,
             MonitorRepository monitorRepo, ProcessingResourceSpecification processingSpec, Monitor originalMonitor,
             String additionalSuffix) {
+
+        if (additionalSuffix == null) {
+            additionalSuffix = "";
+        }
 
         int coreCount = processingSpec.getNumberOfReplicas();
 
@@ -509,13 +604,28 @@ public class PCMModelCompletion {
             String monitorName = MessageFormat.format("CPU Monitor {0} (core {1})", additionalSuffix, i);
             duplicatedMonitor.setEntityName(monitorName);
 
-            // TODO Do not activate all monitors?
             duplicatedMonitor.setActivated(true);
         }
 
     }
 
-    public void addSystemCallMonitor(MeasuringPointRepository measuringPointRepo, MonitorRepository monitorRepo,
+    /**
+     * Add a monitor for a system call by duplicating the provided monitor, creating a new measuring
+     * point and assigning the system call monitor to the provided entry level system call; also
+     * adds the monitor to the monitor repository.
+     *
+     * @param measuringPointRepo
+     *            The repository the new measuring point will be added to.
+     * @param monitorRepo
+     *            The repository the new monitor will be added to.
+     * @param entryCall
+     *            The entry level system call to be monitored.
+     * @param originalMonitor
+     *            The blueprint monitor to be duplicated.
+     * @param additionalSuffix
+     *            An additional suffix to be added to the ID of the new monitor.
+     */
+    private void addSystemCallMonitor(MeasuringPointRepository measuringPointRepo, MonitorRepository monitorRepo,
             EntryLevelSystemCall entryCall, Monitor originalMonitor, String additionalSuffix) {
 
         EntryLevelSystemCallMeasuringPoint point = PcmmeasuringpointFactory.eINSTANCE
@@ -530,7 +640,20 @@ public class PCMModelCompletion {
         addMonitorToModel(measuringPointRepo, monitorRepo, point, duplicatedMonitor);
     }
 
-    public void addMonitorToModel(MeasuringPointRepository measuringPointRepo, MonitorRepository monitorRepo,
+    /**
+     * Add the monitor and measuring point to their respective repositories, connect and activate
+     * monitor and measuring point.
+     *
+     * @param measuringPointRepo
+     *            The repository the measuring point should be added to.
+     * @param monitorRepo
+     *            The repository the monitor should be added to.
+     * @param measuringPoint
+     *            The measuring point to add and connect to its monitor.
+     * @param monitor
+     *            The monitor to add and connect to the measuring point.
+     */
+    private void addMonitorToModel(MeasuringPointRepository measuringPointRepo, MonitorRepository monitorRepo,
             MeasuringPoint measuringPoint, Monitor monitor) {
 
         measuringPoint.setMeasuringPointRepository(measuringPointRepo);
@@ -540,7 +663,24 @@ public class PCMModelCompletion {
         monitor.setActivated(true);
     }
 
-    public BasicComponent buildAndAddJobComponentWithProvidedInterface(Repository repository,
+    /**
+     * Build a new basic component from a job type description, include it in a composite compute
+     * component and add it to a repository model.
+     *
+     * @param repository
+     *            The repository model the component should be added to.
+     * @param jobType
+     *            The job type description the new component should be based on.
+     * @param blueprintSeff
+     *            The SEFF to be included in the component.
+     * @param computeJob
+     *            The composite compute component the basic component role should be added to.
+     * @param stereotypeToApply
+     *            A stereotype to be added to the component. No stereotype will be added if this is
+     *            null.
+     * @return A new basic component created from the job type description.
+     */
+    private BasicComponent buildAndAddJobComponentWithProvidedInterface(Repository repository,
             JobTypeDescription jobType, ResourceDemandingSEFF blueprintSeff, CompositeComponent computeJob,
             Stereotype stereotypeToApply) {
 
@@ -551,12 +691,14 @@ public class PCMModelCompletion {
         component.setEntityName(jobTypeName);
         repository.getComponents__Repository().add(component);
 
-        StereotypeAPI.applyStereotype(component, stereotypeToApply);
+        if (stereotypeToApply != null) {
+            StereotypeAPI.applyStereotype(component, stereotypeToApply);
 
-        StereotypeAPI.setTaggedValue(component, jobType.getRequiredJobslotsStoEx(), "MiddlewareDependency",
-                "numberRequiredResources");
-        StereotypeAPI.setTaggedValue(component, jobType.getSchedulingDelay(), "MiddlewareDependency",
-                "schedulingDelay");
+            StereotypeAPI.setTaggedValue(component, jobType.getRequiredJobslotsStoEx(), "MiddlewareDependency",
+                    "numberRequiredResources");
+            StereotypeAPI.setTaggedValue(component, jobType.getSchedulingDelay(), "MiddlewareDependency",
+                    "schedulingDelay");
+        }
 
         // Create the interface with a single signature
         OperationInterface typeInterface = RepositoryFactory.eINSTANCE.createOperationInterface();
@@ -586,10 +728,6 @@ public class PCMModelCompletion {
         // Add the provided role to the component
         component.getProvidedRoles_InterfaceProvidingEntity().add(opProvidedRole);
 
-        // ResourceDemandingSEFF seff = buildJobSEFF(blueprintSeff, jobTypeName,
-        // jobType);
-        // seff.setDescribedService__SEFF(jobInterfaceSignature);
-
         ResourceDemandingSEFF seff = EcoreUtil.copy(blueprintSeff);
 
         ForkAction forkAction = null;
@@ -610,8 +748,7 @@ public class PCMModelCompletion {
         // Remove fork from SEFF
         forkAction.setResourceDemandingBehaviour_AbstractAction(null);
 
-        // TODO Factor out strings
-        BranchAction branch = duplicateBehaviours(forkAction, "NUMBER_REQUIRED_RESOURCES", 8);
+        BranchAction branch = ModelConstructionUtils.duplicateBehaviours(forkAction, "NUMBER_REQUIRED_RESOURCES", 8);
         branch.setResourceDemandingBehaviour_AbstractAction(seff);
 
         branch.setPredecessor_AbstractAction(predecessorAction);
@@ -675,8 +812,17 @@ public class PCMModelCompletion {
         return component;
     }
 
-    public ResourceDemandingSEFF buildJobSEFF(ResourceDemandingSEFF blueprintSEFF, String seffName,
-            JobTypeDescription jobType) {
+    /**
+     * Complete a blueprint service effect specification with the parameters from a job type
+     * description.
+     *
+     * @param blueprintSEFF
+     *            The blueprint for the SEFF to be duplicated and completed.
+     * @param jobType
+     *            The job type description to be used to complete the SEFF blueprint.
+     * @return The completed service effect specification.
+     */
+    private ResourceDemandingSEFF buildJobSEFF(ResourceDemandingSEFF blueprintSEFF, JobTypeDescription jobType) {
 
         // Copy object, change IDs below after finding contained objects from blueprint
         ResourceDemandingSEFF newSeff = EcoreUtil.copy(blueprintSEFF);
@@ -695,8 +841,8 @@ public class PCMModelCompletion {
         }
 
         // Iterate through the actions to find the random variable for I/O, CPU demand
-        ParametricResourceDemand cpuDemand = findParametricResourceDemand(cpuDemandAction);
-        ParametricResourceDemand ioDemand = findParametricResourceDemand(ioDemandAction);
+        ParametricResourceDemand cpuDemand = ModelConstructionUtils.findParametricResourceDemand(cpuDemandAction);
+        ParametricResourceDemand ioDemand = ModelConstructionUtils.findParametricResourceDemand(ioDemandAction);
 
         if (cpuDemand == null || ioDemand == null) {
             throw new IllegalArgumentException("Invalid model blueprint: missing internal actions.");
@@ -714,91 +860,19 @@ public class PCMModelCompletion {
         ioDemand.setSpecification_ParametericResourceDemand(ioVar);
 
         // Change IDs to prevent conflicts
-        ModelConstructionUtils.changeIds(newSeff);
+        ModelConstructionUtils.setRandomIDsRecursively(newSeff);
 
         return newSeff;
     }
 
-    public static BranchAction duplicateBehaviours(ForkAction containingAction, String duplicationCountParameterName,
-            int maxThreads) {
-
-        ForkAction localContainingAction = ModelConstructionUtils.copyChangeIds(containingAction);
-
-        BranchAction branchResult = SeffFactory.eINSTANCE.createBranchAction();
-
-        for (int i = 1; i <= maxThreads; i++) {
-            ForkAction newFork = ModelConstructionUtils.copyAppendIds(localContainingAction, "_threadcount_" + i);
-
-            SynchronisationPoint syncPoint = newFork.getSynchronisingBehaviours_ForkAction();
-            if (syncPoint == null) {
-                throw new IllegalArgumentException("ForkAction must have synchronized behaviours.");
-            }
-
-            // TODO Check for sanity of the containing action.
-            List<ForkedBehaviour> behaviourList = syncPoint.getSynchronousForkedBehaviours_SynchronisationPoint();
-            if (behaviourList.size() < 1) {
-                throw new IllegalArgumentException("No synchronized behaviours found.");
-            }
-
-            ForkedBehaviour blueprintBehaviour = behaviourList.get(0);
-
-            for (int j = 2; j <= i; j++) {
-                ForkedBehaviour newBehaviour = ModelConstructionUtils.copyAppendIds(blueprintBehaviour, "_thread_" + j);
-                newBehaviour.setSynchronisationPoint_ForkedBehaviour(syncPoint);
-            }
-
-            PCMRandomVariable branchCondition = CoreFactory.eINSTANCE.createPCMRandomVariable();
-            branchCondition.setSpecification(duplicationCountParameterName + ".VALUE == " + i);
-
-            GuardedBranchTransition transition = SeffFactory.eINSTANCE.createGuardedBranchTransition();
-            transition.setBranchCondition_GuardedBranchTransition(branchCondition);
-            transition.setEntityName("transition_run_with_" + i + "cores");
-
-            // Create behaviour for inside of the branched paths
-            ResourceDemandingBehaviour behaviour = SeffFactory.eINSTANCE.createResourceDemandingBehaviour();
-
-            StartAction start = SeffFactory.eINSTANCE.createStartAction();
-            start.setEntityName("startAction in Branch Transition, core count:" + i);
-            StopAction stop = SeffFactory.eINSTANCE.createStopAction();
-
-            transition.setBranchBehaviour_BranchTransition(behaviour);
-            transition.setBranchAction_AbstractBranchTransition(branchResult);
-
-            // Add actions to behaviour
-            start.setResourceDemandingBehaviour_AbstractAction(behaviour);
-            newFork.setResourceDemandingBehaviour_AbstractAction(behaviour);
-            stop.setResourceDemandingBehaviour_AbstractAction(behaviour);
-
-            // Create correct behaviour control flow
-            start.setSuccessor_AbstractAction(newFork);
-
-            newFork.setPredecessor_AbstractAction(start);
-            newFork.setSuccessor_AbstractAction(stop);
-
-            stop.setPredecessor_AbstractAction(newFork);
-        }
-
-        return branchResult;
-    }
-
-    private ParametricResourceDemand findParametricResourceDemand(EObject object) {
-        if (object == null) {
-            return null;
-        }
-
-        TreeIterator<EObject> j = object.eAllContents();
-        while (j.hasNext()) {
-            EObject obj = j.next();
-
-            if (obj instanceof ParametricResourceDemand) {
-                return (ParametricResourceDemand) obj;
-            }
-        }
-
-        return null;
-
-    }
-
+    /**
+     * Throw an exception indicating a blueprint model does not match the expected structure.
+     *
+     * @param affectedModel
+     *            A description of the affected model.
+     * @param message
+     *            A message that describes why the model is invalid.
+     */
     private void throwNewInvalidModelException(String affectedModel, String message) {
         String failureMessage = MessageFormat.format("Invalid {0} model: {1}", affectedModel, message);
         throw new IllegalArgumentException(failureMessage);
