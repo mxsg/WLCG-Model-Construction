@@ -77,16 +77,16 @@ public class JobTypeDescription {
         this.ioTimeRatioStoEx = ioTimeRatioStoEx;
     }
 
-    @Override
-    public String toString() {
-        return "Job Type";
-    }
-
     public int getSchedulingDelay() {
         return schedulingDelay;
     }
 
     public void setSchedulingDelay(int schedulingDelay) {
         this.schedulingDelay = schedulingDelay;
+    }
+
+    @Override
+    public String toString() {
+        return "Job Type";
     }
 }
