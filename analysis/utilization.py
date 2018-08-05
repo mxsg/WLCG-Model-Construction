@@ -17,6 +17,7 @@ def simulation_stop_time(csv_path):
 
     df.columns = ['time_start', 'state']
 
+    # The start of the last state indicates the end of the simulation
     return df.iloc[-1].time_start
 
 
@@ -37,6 +38,63 @@ def calculate_utilization(csv_path):
     # print("Busy time: {}, total length: {}, utilization: {}".format(busy_time, total_time, utilization))
 
     return utilization
+
+
+def single_utilization_timeseries(csv_path, identifier=None):
+    """Return a time series that includes the time stamps of changes in utilization of a single core.
+
+    Expects a csv in the format of <Timestamp>,<State> where <State> is the number of threads concurrently using the
+    resource.
+    """
+    df = pd.read_csv(csv_path, sep=',')
+
+    df.columns = ['time_start', 'state']
+
+    # Check whether the time series has duplicates
+    duplicate_count = df['time_start'].duplicated().sum()
+    if duplicate_count > 0:
+        print("Utilization time series has {} duplicates!".format(duplicate_count))
+
+        # Assume that in case of duplicates, the last entry is the correct one
+        # that applies to the following time span.
+        df = df.drop_duplicates('time_start', keep='last')
+
+    # Set index to timestamp
+    df = df.set_index('time_start')
+
+    # state > 1 indicates multiple threads using the resource,
+    # hence clamp the values to 1 or below in this case
+    df['utilized'] = df['state'].clip(upper=1)
+
+    # Compute the changes in state by computing the delta cores utilized at the specific time
+    # diff computes y[i] = x[i] - x[i-1]
+    df['delta_state'] = df['utilized'].diff()
+
+    # Fill in first row with original value for initial state, either 0 or 1
+    df['delta_state'].iloc[0] = df['utilized'].iloc[0]
+
+    # Add identifier column if indicated in parameters
+    if identifier is not None:
+        df['identifier'] = identifier
+
+    return df
+
+
+def multicore_utilization_timeseries(dfs, delta_state_col='delta_state', busy_core_col='busy_cores'):
+    """Aggregate multiple utilization time series into an overall utilization (number of busy cores)."""
+
+    df = pd.concat(dfs)
+
+    df = df.sort_index()
+    df = df[[delta_state_col]]
+
+    # Remove duplicated time_stamps by summing over the deltas
+    df = df.groupby(df.index).sum()
+
+    # Compute the number of cores that are busy
+    df[busy_core_col] = df[delta_state_col].cumsum()
+
+    return df
 
 
 def average_core_utilization(paths):
@@ -99,6 +157,12 @@ def job_type_throughputs(filenames, directory):
     return result
 
 
+def visualize_utilization(utilization_timeseries: pd.DataFrame, path):
+    axes = utilization_timeseries.plot.line()
+    fig = axes.get_figure()
+    fig.savefig(path)
+
+
 def main():
     if len(sys.argv) != 2:
         print("Usage: python utilization.py <directory>")
@@ -137,6 +201,11 @@ def main():
     utilization_file_paths = [path for path in all_files if utilization_keyword in path]
 
     logging.info("Number of utilization paths: {}".format(len(utilization_file_paths)))
+
+    # Create a plot of the utilization over time
+    utilization_dfs = [single_utilization_timeseries(path) for path in utilization_file_paths]
+    utilization_timeseries = multicore_utilization_timeseries(utilization_dfs)
+    visualize_utilization(utilization_timeseries, 'utilization.pdf')
 
     total_utilization = average_core_utilization(utilization_file_paths)
     logging.info("Total utilization: {}".format(total_utilization))
