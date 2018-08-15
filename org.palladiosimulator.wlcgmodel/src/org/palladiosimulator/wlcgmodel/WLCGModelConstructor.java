@@ -440,6 +440,7 @@ public class WLCGModelConstructor {
             cpuResourceSpec.setProcessingRate_ProcessingResourceSpecification(processingRate);
 
             // Set HDD properties, keep rate the same
+            // TODO Set to concurrent situation?
             hddResourceSpec.setNumberOfReplicas(nodeType.getCores());
             hddResourceSpec.setResourceContainer_ProcessingResourceSpecification(newNode);
 
