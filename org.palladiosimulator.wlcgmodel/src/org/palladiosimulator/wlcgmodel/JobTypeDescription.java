@@ -16,7 +16,7 @@ public class JobTypeDescription {
     private String requiredJobslotsStoEx = null;
     private double relativeFrequency = 0.0;
     private String ioTimeRatioStoEx = null;
-    private int schedulingDelay = 12000;
+    private int schedulingDelay = 0;
 
     /**
      * Construct a new job type description instance
