@@ -21,9 +21,9 @@ Require-Bundle: org.palladiosimulator.architecturaltemplates.catalog,
  org.palladiosimulator.mdsdprofiles.api,
  org.palladiosimulator.edp2,
  org.palladiosimulator.monitorrepository,
- org.palladiosimulator.pcm.edp2.measuringpoint;bundle-version="1.0.0",
- org.palladiosimulator.loadbalancingaction;bundle-version="1.0.0",
- org.palladiosimulator.loadbalancingaction.catalog;bundle-version="1.0.0"
+ org.palladiosimulator.pcm.edp2.measuringpoint,
+ org.palladiosimulator.loadbalancingaction,
+ org.palladiosimulator.loadbalancingaction.catalog
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Automatic-Module-Name: org.palladiosimulator.wlcgmodel
