@@ -199,7 +199,7 @@ def draw_throughput(job_type_throughputs):
     fig, axes = plt.subplots()
 
     # job_type_throughputs.sort_index(axis=1, inplace=True)
-    job_type_throughputs.sort_values(by='measured', axis=1, ascending=False, inplace=True)
+    job_type_throughputs.sort_values(by='simulated', axis=1, ascending=False, inplace=True)
 
     job_type_throughputs.plot.barh(ax=axes, stacked=True)
 
@@ -304,14 +304,20 @@ def main():
     counts_measured.rename(columns={'throughput_day': 'throughput'}, inplace=True)
 
     counts_measured = counts_measured[['type', 'throughput']]
-    counts_measured['source'] = 'measured'
+    counts_measured['source'] = 'measured\n(CMS Dashboard)'
 
     counts_simulated = pd.DataFrame.from_records(throughputs, columns=['type', 'count'])
     counts_simulated['throughput'] = counts_simulated['count'].divide(simulation_days)
     counts_simulated = counts_simulated[['type', 'throughput']]
     counts_simulated['source'] = 'simulated'
 
-    counts = pd.concat([counts_measured, counts_simulated])
+    counts_measured_reports = read_throughput_description(os.path.join(directory, 'job_counts_reference_extracted_reports.csv'))
+    counts_measured_reports.rename(columns={'throughput_day': 'throughput'}, inplace=True)
+
+    counts_measured_reports = counts_measured_reports[['type', 'throughput']]
+    counts_measured_reports['source'] = 'measured\n(matched reports)'
+
+    counts = pd.concat([counts_measured, counts_simulated, counts_measured_reports])
 
     pivoted = counts.pivot(index='source', columns='type', values='throughput').fillna(0)
 
