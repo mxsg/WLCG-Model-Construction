@@ -9,6 +9,8 @@ import os
 import re
 import sys
 
+import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 
 
@@ -157,10 +159,60 @@ def job_type_throughputs(filenames, directory):
     return result
 
 
-def visualize_utilization(utilization_timeseries: pd.DataFrame, path):
-    axes = utilization_timeseries.plot.line()
+def visualize_utilization(utilization_timeseries: pd.DataFrame, path, core_col='busy_cores', reference_utilization=None,
+                          max_val=None, resample_freq=600):
+    utilization_timeseries['utilization'] = utilization_timeseries[core_col].divide(max_val)
+
+    utilization_timeseries['time_resampled'] = utilization_timeseries.index.to_series().divide(resample_freq).apply(
+        np.ceil).multiply(resample_freq)
+
+    utilization_resampled = utilization_timeseries.groupby('time_resampled')['utilization'].mean()
+
+    fig, axes = plt.subplots()
+
+    axes = utilization_resampled.plot.line(ax=axes, label="Simulated (busy share of {} cores)".format(max_val))
+    # axes = utilization_resampled.plot.line(ax=axes, label="resampled".format(max_val))
+
+    if max_val is not None:
+        axes.set_ylim(0, 1)
+
+    max_time = max(utilization_resampled.index)
+    axes.set_xlim(left=0, right=max_time)
+
+    if reference_utilization is not None:
+        axes.axhline(reference_utilization, label="Reference (average)", color='#ff7f0e')
+
+    axes.legend()
+
+    axes.set_ylabel("CPU Utilization")
+    axes.set_xlabel("Time / s")
+    axes.set_title("Simulated and measured CPU utilization")
+
     fig = axes.get_figure()
-    fig.savefig(path)
+    return fig, axes
+
+def read_throughput_description(path):
+    df = pd.read_csv(path)
+    return df
+
+def draw_throughput(job_type_throughputs):
+    fig, axes = plt.subplots()
+
+    # job_type_throughputs.sort_index(axis=1, inplace=True)
+    job_type_throughputs.sort_values(by='measured', axis=1, ascending=False, inplace=True)
+
+    job_type_throughputs.plot.barh(ax=axes, stacked=True)
+
+    axes.set_title('Simulated and measured job throughputs (May 2018)')
+    axes.set_ylabel('')
+    axes.set_xlabel('Job throughput / (1 / day)')
+    axes.legend(title="Job Types")
+
+    fig.set_size_inches(8, 4)
+
+    fig.tight_layout()
+
+    return fig, axes
 
 
 def main():
@@ -201,11 +253,18 @@ def main():
     utilization_file_paths = [path for path in all_files if utilization_keyword in path]
 
     logging.info("Number of utilization paths: {}".format(len(utilization_file_paths)))
+    core_count = len(utilization_file_paths)
 
     # Create a plot of the utilization over time
     utilization_dfs = [single_utilization_timeseries(path) for path in utilization_file_paths]
     utilization_timeseries = multicore_utilization_timeseries(utilization_dfs)
-    visualize_utilization(utilization_timeseries, 'utilization.pdf')
+
+    # Todo Load this from a file!
+    utilization_reference = 0.75
+    fig, axes = visualize_utilization(utilization_timeseries, 'utilization.pdf',
+                                      reference_utilization=utilization_reference, max_val=core_count)
+
+    fig.savefig(os.path.join(directory, 'utilization.pdf'))
 
     total_utilization = average_core_utilization(utilization_file_paths)
     logging.info("Total utilization: {}".format(total_utilization))
@@ -235,6 +294,38 @@ def main():
 
     for type, throughput in throughputs:
         logging.info("Type {}: {} ({} relative share)".format(type, throughput, throughput / total_throughput))
+
+    # Generate figure for job throughputs
+
+    # Todo Compute this directly from the data!
+    simulation_days = 7
+
+    counts_measured = read_throughput_description(os.path.join(directory, 'job_counts_reference_jm.csv'))
+    counts_measured.rename(columns={'throughput_day': 'throughput'}, inplace=True)
+
+    counts_measured = counts_measured[['type', 'throughput']]
+    counts_measured['source'] = 'measured'
+
+    counts_simulated = pd.DataFrame.from_records(throughputs, columns=['type', 'count'])
+    counts_simulated['throughput'] = counts_simulated['count'].divide(simulation_days)
+    counts_simulated = counts_simulated[['type', 'throughput']]
+    counts_simulated['source'] = 'simulated'
+
+    counts = pd.concat([counts_measured, counts_simulated])
+
+    pivoted = counts.pivot(index='source', columns='type', values='throughput').fillna(0)
+
+    fig, axes = draw_throughput(pivoted)
+
+    fig.savefig(os.path.join(directory, 'throughputs.pdf'))
+
+
+    # counts = pd.merge(counts_measured, counts_simulated, on='type')
+    # , 'count_measured', 'count_simulated'
+    # counts = counts[['type', 'measured', 'simulated']]
+
+    # counts.sort_values(by='measured', ascending=False, inplace=True)
+
 
     # Compute passive resource utilization
     logging.info("")
