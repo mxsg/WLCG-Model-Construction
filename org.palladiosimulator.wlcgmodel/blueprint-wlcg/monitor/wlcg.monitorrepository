@@ -34,4 +34,10 @@
     </measurementSpecifications>
     <measuringPoint xsi:type="pcmmeasuringpoint:SystemOperationMeasuringPoint" href="measuringpoints.measuringpoint#//@measuringPoints.3"/>
   </monitors>
+  <monitors id="externalCallResponseTimeMonitor" entityName="Job Response Time Blueprint">
+    <measurementSpecifications id="_relQYKb0EeitprFeSeAVkg">
+      <metricDescription xsi:type="metricspec:NumericalBaseMetricDescription" href="pathmap://METRIC_SPEC_MODELS/models/commonMetrics.metricspec#_6rYmYs7nEeOX_4BzImuHbA"/>
+      <processingType xsi:type="monitorrepository:FeedThrough" id="_u8044Kb0EeitprFeSeAVkg"/>
+    </measurementSpecifications>
+  </monitors>
 </monitorrepository:MonitorRepository>
