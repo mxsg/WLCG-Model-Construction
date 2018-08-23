@@ -159,6 +159,29 @@ def job_type_throughputs(filenames, directory):
     return result
 
 
+def job_type_response_times(filenames, directory):
+    type_regex = r'ExternalCall_externalCallType_(.*?)_(.*)\.csv'
+
+    pattern = re.compile(type_regex)
+
+    # Contains tuples with the name of the job type and the file name
+    job_types = [(pattern.findall(filename)[0][0], filename) for filename in filenames]
+
+    dfs = []
+
+    for type_name, filename in job_types:
+        path = os.path.join(directory, filename)
+
+        df = pd.read_csv(path, sep=',')
+        df.columns = ['time', 'response_time']
+        df['type'] = type_name
+
+        dfs.append(df)
+
+    result = pd.concat(dfs)
+    return result
+
+
 def visualize_utilization(utilization_timeseries: pd.DataFrame, path, core_col='busy_cores', reference_utilization=None,
                           max_val=None, resample_freq=600):
     utilization_timeseries['utilization'] = utilization_timeseries[core_col].divide(max_val)
@@ -191,9 +214,27 @@ def visualize_utilization(utilization_timeseries: pd.DataFrame, path, core_col='
     fig = axes.get_figure()
     return fig, axes
 
+
+def visualize_walltimes(df: pd.DataFrame, output_path, output_name, bins=50):
+    required_columns = ['type', 'response_time']
+
+    if not all(col in df.columns for col in required_columns):
+        raise ValueError("Missing column for creating walltime visualization!")
+
+    for type in df['type'].unique():
+        fig, axes = plt.subplots()
+
+        jobs_of_type = df[df['type'] == type]
+        jobs_of_type['response_time'].plot.hist(ax=axes, bins=bins)
+
+        fig_path = os.path.join(output_path, "{}_{}.pdf".format(output_name, type))
+        fig.savefig(fig_path)
+
+
 def read_throughput_description(path):
     df = pd.read_csv(path)
     return df
+
 
 def draw_throughput(job_type_throughputs):
     fig, axes = plt.subplots()
@@ -243,6 +284,7 @@ def main():
     overall_throughput_keyword = 'Usage_Scenario'
     type_throughput_keyword = 'provided_role_system'
     passive_resource_keyword = 'State_of_Passive_Resource_Tuple'
+    external_call_keyword = 'ExternalCall'
 
     # Compute core utilization
     logging.info("## Core Utilizations")
@@ -297,8 +339,11 @@ def main():
 
     # Generate figure for job throughputs
 
-    # Todo Compute this directly from the data!
-    simulation_days = 7
+    # Compute time max length
+    stoptime = simulation_stop_time(utilization_file_paths[0])
+
+    # Compute number of days from the maximum time in the simulation (86400 seconds in a day)
+    simulation_days = stoptime / 86400
 
     counts_measured = read_throughput_description(os.path.join(directory, 'job_counts_reference_jm.csv'))
     counts_measured.rename(columns={'throughput_day': 'throughput'}, inplace=True)
@@ -311,7 +356,8 @@ def main():
     counts_simulated = counts_simulated[['type', 'throughput']]
     counts_simulated['source'] = 'simulated'
 
-    counts_measured_reports = read_throughput_description(os.path.join(directory, 'job_counts_reference_extracted_reports.csv'))
+    counts_measured_reports = read_throughput_description(
+        os.path.join(directory, 'job_counts_reference_extracted_reports.csv'))
     counts_measured_reports.rename(columns={'throughput_day': 'throughput'}, inplace=True)
 
     counts_measured_reports = counts_measured_reports[['type', 'throughput']]
@@ -325,20 +371,17 @@ def main():
 
     fig.savefig(os.path.join(directory, 'throughputs.pdf'))
 
+    # Compute Walltimes
 
-    # counts = pd.merge(counts_measured, counts_simulated, on='type')
-    # , 'count_measured', 'count_simulated'
-    # counts = counts[['type', 'measured', 'simulated']]
+    walltime_filenames = [i for i in os.listdir(directory) if
+                          os.path.isfile(os.path.join(directory, i)) and external_call_keyword in i]
 
-    # counts.sort_values(by='measured', ascending=False, inplace=True)
-
+    walltimes = job_type_response_times(walltime_filenames, directory)
+    visualize_walltimes(walltimes, directory, "walltimes", bins=80)
 
     # Compute passive resource utilization
     logging.info("")
     logging.info("## Jobslot Utilization")
-
-    # Compute time max length
-    stoptime = simulation_stop_time(utilization_file_paths[0])
 
     logging.info("Stop time: {}".format(stoptime))
 
