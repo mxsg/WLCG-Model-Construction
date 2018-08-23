@@ -25,7 +25,7 @@
       <serviceEffectSpecifications__BasicComponent xsi:type="seff:ResourceDemandingSEFF" id="WLCGBlueprint_runBlueprintJobSEFF" describedService__SEFF="_pvENQGb7EeiZ7YhGqMXvDQ">
         <steps_Behaviour xsi:type="seff:StartAction" id="_8nx_sWb7EeiZ7YhGqMXvDQ" successor_AbstractAction="_D6i9sKatEeiAoM15ZahjOw"/>
         <steps_Behaviour xsi:type="seff:StopAction" id="_8nx_smb7EeiZ7YhGqMXvDQ" predecessor_AbstractAction="_D6i9sKatEeiAoM15ZahjOw"/>
-        <steps_Behaviour xsi:type="seff:ExternalCallAction" id="_D6i9sKatEeiAoM15ZahjOw" entityName="ExternalCallAction1" predecessor_AbstractAction="_8nx_sWb7EeiZ7YhGqMXvDQ" successor_AbstractAction="_8nx_smb7EeiZ7YhGqMXvDQ" calledService_ExternalService="_0GwHEKanEeiAoM15ZahjOw">
+        <steps_Behaviour xsi:type="seff:ExternalCallAction" id="_D6i9sKatEeiAoM15ZahjOw" entityName="Execute Job" predecessor_AbstractAction="_8nx_sWb7EeiZ7YhGqMXvDQ" successor_AbstractAction="_8nx_smb7EeiZ7YhGqMXvDQ" calledService_ExternalService="_0GwHEKanEeiAoM15ZahjOw" role_ExternalService="_40eZcKayEeiemMvUa_9B1w">
           <inputVariableUsages__CallAction>
             <variableCharacterisation_VariableUsage type="VALUE">
               <specification_VariableCharacterisation specification="CPU_DEMAND.VALUE"/>
