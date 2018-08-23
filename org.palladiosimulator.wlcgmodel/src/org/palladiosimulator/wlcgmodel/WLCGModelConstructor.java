@@ -26,14 +26,17 @@ import org.palladiosimulator.pcm.allocation.AllocationContext;
 import org.palladiosimulator.pcm.allocation.AllocationFactory;
 import org.palladiosimulator.pcm.core.CoreFactory;
 import org.palladiosimulator.pcm.core.PCMRandomVariable;
+import org.palladiosimulator.pcm.core.composition.AssemblyConnector;
 import org.palladiosimulator.pcm.core.composition.AssemblyContext;
 import org.palladiosimulator.pcm.core.composition.CompositionFactory;
 import org.palladiosimulator.pcm.core.composition.ProvidedDelegationConnector;
 import org.palladiosimulator.pcm.parameter.VariableUsage;
 import org.palladiosimulator.pcm.repository.BasicComponent;
 import org.palladiosimulator.pcm.repository.CompositeComponent;
+import org.palladiosimulator.pcm.repository.Interface;
 import org.palladiosimulator.pcm.repository.OperationInterface;
 import org.palladiosimulator.pcm.repository.OperationProvidedRole;
+import org.palladiosimulator.pcm.repository.OperationRequiredRole;
 import org.palladiosimulator.pcm.repository.OperationSignature;
 import org.palladiosimulator.pcm.repository.Repository;
 import org.palladiosimulator.pcm.repository.RepositoryComponent;
@@ -83,8 +86,17 @@ public class WLCGModelConstructor {
     // IDs for the model elements used during construction
     private static final String COMPUTE_JOB_COMPOSITE_COMPONENT_ID = "WLCGBlueprint_computeJobCompositeComponent";
     private static final String BLUEPRINT_JOB_COMPONENT_ID = "WLCGBlueprint_blueprintJobComponent";
+
+    private static final String BLUEPRINT_GRID_JOB_COMPONENT_ID = "gridJobComponent";
+    private static final String BLUEPRINT_GRID_JOB_SEFF = "gridJobSEFF";
+
+    private static final String GRID_JOB_INTERFACE = "gridJobInterface";
+    private static final String BLUEPRINT_GRID_JOB_PROVIDED_ROLE = "gridJobProvidedRole";
+    private static final String BLUEPRINT_GRID_JOB_ASSEMBLY = "gridJobAssembly";
+
     private static final String BLUEPRINT_JOB_SEFF = "WLCGBlueprint_runBlueprintJobSEFF";
     private static final String BLUEPRINT_JOB_FORK = "WLCGBlueprint_runBlueprintJobSEFF_forkAction";
+    private static final String BLUEPRINT_FORK_ACTION = "blueprintForkAction";
 
     private static final String COMPUTE_ASSEMBLY_CONTEXT_SYSTEM = "WLCGBlueprint_computeJobAssemblyContextSystem";
     private static final String BLUEPRINT_NODE = "WLCGBlueprint_blueprintNode";
@@ -277,13 +289,55 @@ public class WLCGModelConstructor {
             throw new IllegalArgumentException("Invalid model blueprint!");
         }
 
-        ResourceDemandingSEFF resourceSeff = (ResourceDemandingSEFF) seff;
+        // Get the grid job Interface
+        List<Interface> interfaces = repository.getInterfaces__Repository();
+        OperationInterface gridJobInterface = (OperationInterface) ModelConstructionUtils.findObjectWithId(interfaces, GRID_JOB_INTERFACE);
 
+        // Complete SEFF for Grid Job Component
+        BasicComponent gridJob = (BasicComponent) ModelConstructionUtils
+                .findObjectWithId(components, BLUEPRINT_GRID_JOB_COMPONENT_ID);
+
+        OperationProvidedRole gridJobProvidedRole = (OperationProvidedRole) ModelConstructionUtils
+                .findObjectWithId(gridJob.getProvidedRoles_InterfaceProvidingEntity(), BLUEPRINT_GRID_JOB_PROVIDED_ROLE);
+
+        ServiceEffectSpecification gridJobSeff = ModelConstructionUtils
+                .findObjectWithId(gridJob.getServiceEffectSpecifications__BasicComponent(), BLUEPRINT_GRID_JOB_SEFF);
+        ResourceDemandingSEFF resourceGridJobSeff = (ResourceDemandingSEFF) gridJobSeff;
+
+        constructMultithreadedSEFF(resourceGridJobSeff);
+
+        // Build the job type components and add them to the models
+        ResourceDemandingSEFF resourceSeff = (ResourceDemandingSEFF) seff;
         for (JobTypeDescription job : jobTypes) {
             System.out.println("Adding job type to repository: " + job.getTypeName());
             buildAndAddJobComponentWithProvidedInterface(repository, job, resourceSeff, computeJob,
-                    middlewareDependencyStereotype);
+                    middlewareDependencyStereotype, gridJobInterface, gridJobProvidedRole);
         }
+    }
+
+    private void constructMultithreadedSEFF(ResourceDemandingSEFF seff) {
+
+        ForkAction forkAction = null;
+        EObject forkObject = ModelConstructionUtils.findObjectWithIdRecursively(seff, BLUEPRINT_FORK_ACTION);
+        if (forkObject instanceof ForkAction) {
+            forkAction = (ForkAction) forkObject;
+        }
+
+        if (forkAction == null) {
+            throwNewInvalidModelException("Repository", "Could not find fork action in job RDSEFF.");
+        }
+
+        AbstractAction predecessorAction = forkAction.getPredecessor_AbstractAction();
+        AbstractAction successorAction = forkAction.getSuccessor_AbstractAction();
+
+        // Remove fork from SEFF
+        forkAction.setResourceDemandingBehaviour_AbstractAction(null);
+
+        BranchAction branch = ModelConstructionUtils.duplicateBehaviours(forkAction, "threadCount", 8);
+        branch.setResourceDemandingBehaviour_AbstractAction(seff);
+
+        branch.setPredecessor_AbstractAction(predecessorAction);
+        branch.setSuccessor_AbstractAction(successorAction);
     }
 
     /**
@@ -647,7 +701,7 @@ public class WLCGModelConstructor {
      */
     private BasicComponent buildAndAddJobComponentWithProvidedInterface(Repository repository,
             JobTypeDescription jobType, ResourceDemandingSEFF blueprintSeff, CompositeComponent computeJob,
-            Stereotype stereotypeToApply) {
+            Stereotype stereotypeToApply, OperationInterface requiredJobInterface, OperationProvidedRole gridJobProvidedRole) {
 
         BasicComponent component = RepositoryFactory.eINSTANCE.createBasicComponent();
 
@@ -693,31 +747,20 @@ public class WLCGModelConstructor {
         // Add the provided role to the component
         component.getProvidedRoles_InterfaceProvidingEntity().add(opProvidedRole);
 
+
+        // Add required role to the component
+        OperationRequiredRole requiredRole = RepositoryFactory.eINSTANCE.createOperationRequiredRole();
+        requiredRole.setEntityName("required_role_component_" + jobTypeName);
+
+        // Set the interface for the required role
+        requiredRole.setRequiredInterface__OperationRequiredRole(requiredJobInterface);
+
+        // Add the required role to the component as well
+        component.getRequiredRoles_InterfaceRequiringEntity().add(requiredRole);
+
+
         ResourceDemandingSEFF seff = EcoreUtil.copy(blueprintSeff);
-
-        ForkAction forkAction = null;
-        EObject forkObject = ModelConstructionUtils.findObjectWithIdRecursively(seff, BLUEPRINT_JOB_FORK);
-        if (forkObject instanceof ForkAction) {
-            forkAction = (ForkAction) forkObject;
-        }
-
-        if (forkAction == null) {
-            throwNewInvalidModelException("Repository", "Could not find fork action in job RDSEFF.");
-        }
-
         ModelConstructionUtils.appendIDsRecursively(seff, "_" + jobTypeName);
-
-        AbstractAction predecessorAction = forkAction.getPredecessor_AbstractAction();
-        AbstractAction successorAction = forkAction.getSuccessor_AbstractAction();
-
-        // Remove fork from SEFF
-        forkAction.setResourceDemandingBehaviour_AbstractAction(null);
-
-        BranchAction branch = ModelConstructionUtils.duplicateBehaviours(forkAction, "NUMBER_REQUIRED_RESOURCES", 8);
-        branch.setResourceDemandingBehaviour_AbstractAction(seff);
-
-        branch.setPredecessor_AbstractAction(predecessorAction);
-        branch.setSuccessor_AbstractAction(successorAction);
 
         seff.setDescribedService__SEFF(jobInterfaceSignature);
 
@@ -773,6 +816,19 @@ public class WLCGModelConstructor {
         connector.setInnerProvidedRole_ProvidedDelegationConnector(opProvidedRole);
         connector.setOuterProvidedRole_ProvidedDelegationConnector(compositeRole);
         connector.setParentStructure__Connector(computeJob);
+
+        // Create connection between basic component and grid job component
+        List<AssemblyContext> computeJobAssemblies = computeJob.getAssemblyContexts__ComposedStructure();
+        AssemblyContext gridJobAssembly = ModelConstructionUtils.findObjectWithId(computeJobAssemblies, BLUEPRINT_GRID_JOB_ASSEMBLY);
+
+        AssemblyConnector gridJobConnector = CompositionFactory.eINSTANCE.createAssemblyConnector();
+        gridJobConnector.setProvidedRole_AssemblyConnector(gridJobProvidedRole);
+        gridJobConnector.setRequiredRole_AssemblyConnector(requiredRole);
+
+        gridJobConnector.setProvidingAssemblyContext_AssemblyConnector(gridJobAssembly);
+        gridJobConnector.setRequiringAssemblyContext_AssemblyConnector(assembly);
+
+        gridJobConnector.setParentStructure__Connector(computeJob);
 
         return component;
     }
