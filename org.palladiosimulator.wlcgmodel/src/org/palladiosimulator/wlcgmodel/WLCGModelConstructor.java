@@ -46,6 +46,7 @@ import org.palladiosimulator.pcm.resourceenvironment.ResourceContainer;
 import org.palladiosimulator.pcm.resourceenvironment.ResourceEnvironment;
 import org.palladiosimulator.pcm.seff.AbstractAction;
 import org.palladiosimulator.pcm.seff.BranchAction;
+import org.palladiosimulator.pcm.seff.ExternalCallAction;
 import org.palladiosimulator.pcm.seff.ForkAction;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 import org.palladiosimulator.pcm.seff.ServiceEffectSpecification;
@@ -56,6 +57,7 @@ import org.palladiosimulator.pcm.usagemodel.ScenarioBehaviour;
 import org.palladiosimulator.pcm.usagemodel.UsageModel;
 import org.palladiosimulator.pcm.usagemodel.UsageScenario;
 import org.palladiosimulator.pcmmeasuringpoint.ActiveResourceMeasuringPoint;
+import org.palladiosimulator.pcmmeasuringpoint.ExternalCallActionMeasuringPoint;
 import org.palladiosimulator.pcmmeasuringpoint.PcmmeasuringpointFactory;
 import org.palladiosimulator.pcmmeasuringpoint.SystemOperationMeasuringPoint;
 
@@ -95,6 +97,8 @@ public class WLCGModelConstructor {
     private static final String BLUEPRINT_GRID_JOB_ASSEMBLY = "gridJobAssembly";
 
     private static final String BLUEPRINT_JOB_SEFF = "WLCGBlueprint_runBlueprintJobSEFF";
+    private static final String BLUEPRINT_JOB_EXTERNAL_CALL_ACTION = "jobExternalCallAction";
+
     private static final String BLUEPRINT_JOB_FORK = "WLCGBlueprint_runBlueprintJobSEFF_forkAction";
     private static final String BLUEPRINT_FORK_ACTION = "blueprintForkAction";
 
@@ -104,6 +108,7 @@ public class WLCGModelConstructor {
     private static final String BLUEPRINT_HDD = "WLCGBlueprint_blueprintHDD";
     private static final String BLUEPRINT_CPU_MONITOR = "resourceMonitorCPU";
     private static final String BLUEPRINT_SYSTEM_CALL_MONITOR = "responseTimeTypeMonitor";
+    private static final String BLUEPRINT_EXTERNAL_CALL_MONITOR = "externalCallResponseTimeMonitor";
 
     private static final String BLUEPRINT_USAGE_SCENARIO = "WLCGBlueprint_blueprintUsageScenario";
     private static final String BLUEPRINT_ENTRY_LEVEL_SYSTEM_CALL = "WLCGBlueprint_blueprintEntryLevelSystemCall";
@@ -114,6 +119,7 @@ public class WLCGModelConstructor {
     private Map<String, OperationProvidedRole> providedRolesComputeJobAssembly = new HashMap<>();
     private Map<String, OperationProvidedRole> providedRolesSystem = new HashMap<>();
     private Map<String, OperationSignature> jobSignatures = new HashMap<>();
+    private Map<String, ExternalCallAction> externalCallActions = new HashMap<>();
 
     private List<ResourceContainer> resourceContainerTypes = new ArrayList<>();
     private AssemblyContext computeJobAssembly = null;
@@ -224,6 +230,24 @@ public class WLCGModelConstructor {
 
         // Remove blueprint monitor from monitor repository
         blueprintResponseTimeMonitor.setMonitorRepository(null);
+
+
+        // Insert monitors for job response times
+        Monitor blueprintJobResponseTimeMonitor = ModelConstructionUtils
+                .findObjectWithId(allMonitors, BLUEPRINT_EXTERNAL_CALL_MONITOR);
+
+        if (blueprintJobResponseTimeMonitor == null) {
+            throw new IllegalArgumentException("Invalid monitor repository, missing external call monitor.");
+        }
+
+        for (Map.Entry<String, ExternalCallAction> entry : this.externalCallActions.entrySet()) {
+            this.addExternalCallMonitoring(measuringPointRepo, monitorRepo, entry.getValue(),
+                    blueprintJobResponseTimeMonitor, entry.getKey());
+        }
+
+        // Remove blueprint monitor from monitor repository
+        blueprintJobResponseTimeMonitor.setMonitorRepository(null);
+
 
         // Complete Allocation Model
         Resource allocationModelResource = resourceSet.getResource(modelsPath.appendSegment(ALLOCATION_MODEL_FILENAME),
@@ -663,6 +687,29 @@ public class WLCGModelConstructor {
 
     }
 
+    private void addExternalCallMonitoring(MeasuringPointRepository measuringPointRepo, MonitorRepository monitorRepo, ExternalCallAction externalCall,
+            Monitor originalMonitor, String additionalSuffix) {
+
+        if (additionalSuffix == null) {
+            additionalSuffix = "";
+        }
+
+        // Add a new measuring point for the external call
+        ExternalCallActionMeasuringPoint point = PcmmeasuringpointFactory.eINSTANCE.createExternalCallActionMeasuringPoint();
+        point.setExternalCall(externalCall);
+        point.setMeasuringPointRepository(measuringPointRepo);
+
+        // Add a monitor for the new measuring point
+        Monitor duplicatedMonitor = ModelConstructionUtils.copyAppendIds(originalMonitor, "_" + additionalSuffix);
+
+        duplicatedMonitor.setMeasuringPoint(point);
+        duplicatedMonitor.setMonitorRepository(monitorRepo);
+
+        duplicatedMonitor.setEntityName("Job Response Time Monitor " + additionalSuffix);
+
+        duplicatedMonitor.setActivated(true);
+    }
+
     /**
      * Add the monitor and measuring point to their respective repositories, connect and activate
      * monitor and measuring point.
@@ -764,6 +811,15 @@ public class WLCGModelConstructor {
 
 
         ResourceDemandingSEFF seff = EcoreUtil.copy(blueprintSeff);
+        ExternalCallAction externalCall = (ExternalCallAction) ModelConstructionUtils.findObjectWithId(seff.getSteps_Behaviour(), BLUEPRINT_JOB_EXTERNAL_CALL_ACTION);
+
+        // Set the correct role for the job component's external call to the generic grid job
+        externalCall.setRole_ExternalService(requiredRole);
+        externalCall.setEntityName("externalCallType_" + jobTypeName);
+
+        // Save for duplicated monitors
+        this.externalCallActions.put(jobTypeName, externalCall);
+
         ModelConstructionUtils.appendIDsRecursively(seff, "_" + jobTypeName);
 
         seff.setDescribedService__SEFF(jobInterfaceSignature);
