@@ -13,7 +13,7 @@
   </system:System>
   <emfprofileapplication:ProfileApplication>
     <stereotypeApplications xsi:type="org.palladiosimulator.loadbalancingaction.catalog.profiles:StaticResourceContainerLoadbalancingSystem" appliedTo="_N6LpsGb-EeiZ7YhGqMXvDQ" loadbalancingStrategy="JOBSLOT_FIRSTFIT">
-      <extension href="platform:/plugin/org.palladiosimulator.loadbalancingaction.catalog/profiles/StaticResourceContainerLoadbalancing.emfprofile_diagram#_tveRoL0NEeSXc41T9TupKQ"/>
+      <extension href="../../plugin/org.palladiosimulator.loadbalancingaction.catalog/profiles/StaticResourceContainerLoadbalancing.emfprofile_diagram#_tveRoL0NEeSXc41T9TupKQ"/>
     </stereotypeApplications>
     <importedProfiles nsURI="org.palladiosimulator.loadbalancingaction.catalog.profiles.staticresourcecontainerloadbalancing" location="platform:/plugin/org.palladiosimulator.loadbalancingaction.catalog/profiles/StaticResourceContainerLoadbalancing.emfprofile_diagram"/>
   </emfprofileapplication:ProfileApplication>
