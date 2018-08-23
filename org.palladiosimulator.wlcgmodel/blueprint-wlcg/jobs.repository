@@ -3,6 +3,7 @@
   <repository:Repository id="_6967YGb6EeiZ7YhGqMXvDQ" entityName="jobsRepository">
     <components__Repository xsi:type="repository:BasicComponent" id="WLCGBlueprint_blueprintJobComponent" entityName="jobBlueprint">
       <providedRoles_InterfaceProvidingEntity xsi:type="repository:OperationProvidedRole" id="_8nbaYGb7EeiZ7YhGqMXvDQ" entityName="blueprintBasicProvidedRole" providedInterface__OperationProvidedRole="_oMJpAGb7EeiZ7YhGqMXvDQ"/>
+      <requiredRoles_InterfaceRequiringEntity xsi:type="repository:OperationRequiredRole" id="_40eZcKayEeiemMvUa_9B1w" entityName="jobBlueprint.gridJobInterface.OperationRequiredRole1" requiredInterface__OperationRequiredRole="_iuASkKanEeiAoM15ZahjOw"/>
       <componentParameterUsage_ImplementationComponentType>
         <variableCharacterisation_VariableUsage type="VALUE">
           <specification_VariableCharacterisation specification="0.0"/>
@@ -22,56 +23,49 @@
         <namedReference__VariableUsage xsi:type="stoex:VariableReference" referenceName="RESOURCE_DEMAND_ROUNDS"/>
       </componentParameterUsage_ImplementationComponentType>
       <serviceEffectSpecifications__BasicComponent xsi:type="seff:ResourceDemandingSEFF" id="WLCGBlueprint_runBlueprintJobSEFF" describedService__SEFF="_pvENQGb7EeiZ7YhGqMXvDQ">
-        <steps_Behaviour xsi:type="seff:StartAction" id="_8nx_sWb7EeiZ7YhGqMXvDQ" successor_AbstractAction="WLCGBlueprint_runBlueprintJobSEFF_forkAction"/>
-        <steps_Behaviour xsi:type="seff:StopAction" id="_8nx_smb7EeiZ7YhGqMXvDQ" predecessor_AbstractAction="WLCGBlueprint_runBlueprintJobSEFF_forkAction"/>
-        <steps_Behaviour xsi:type="seff:ForkAction" id="WLCGBlueprint_runBlueprintJobSEFF_forkAction" entityName="concurrentResourceDemands" predecessor_AbstractAction="_8nx_sWb7EeiZ7YhGqMXvDQ" successor_AbstractAction="_8nx_smb7EeiZ7YhGqMXvDQ">
-          <synchronisingBehaviours_ForkAction id="_pZ8XsHIFEeiravDfpTP6YQ">
-            <synchronousForkedBehaviours_SynchronisationPoint id="_Q7H4YHIFEeiravDfpTP6YQ">
-              <steps_Behaviour xsi:type="seff:StartAction" id="_G7dp8XIIEeiravDfpTP6YQ" successor_AbstractAction="_hv3EQHIuEeikp-o7yZO_5A"/>
-              <steps_Behaviour xsi:type="seff:StopAction" id="_G7eRAHIIEeiravDfpTP6YQ" predecessor_AbstractAction="_hv3EQHIuEeikp-o7yZO_5A"/>
-              <steps_Behaviour xsi:type="seff:LoopAction" id="_hv3EQHIuEeikp-o7yZO_5A" entityName="LoopAction1" predecessor_AbstractAction="_G7dp8XIIEeiravDfpTP6YQ" successor_AbstractAction="_G7eRAHIIEeiravDfpTP6YQ">
-                <bodyBehaviour_Loop id="_hv4SYHIuEeikp-o7yZO_5A">
-                  <steps_Behaviour xsi:type="seff:StartAction" id="_hv4SYXIuEeikp-o7yZO_5A" successor_AbstractAction="WLCGBlueprint_runBlueprintJobSEFF_ioAction"/>
-                  <steps_Behaviour xsi:type="seff:StopAction" id="_hv4SYnIuEeikp-o7yZO_5A" predecessor_AbstractAction="WLCGBlueprint_runBlueprintJobSEFF_cpuAction"/>
-                  <steps_Behaviour xsi:type="seff:InternalAction" id="WLCGBlueprint_runBlueprintJobSEFF_cpuAction" entityName="processingAction" predecessor_AbstractAction="WLCGBlueprint_runBlueprintJobSEFF_ioAction" successor_AbstractAction="_hv4SYnIuEeikp-o7yZO_5A">
-                    <resourceDemand_Action>
-                      <specification_ParametericResourceDemand specification="(CPU_DEMAND.VALUE / NUMBER_REQUIRED_RESOURCES.VALUE) / RESOURCE_DEMAND_ROUNDS.VALUE"/>
-                      <requiredResource_ParametricResourceDemand href="pathmap://PCM_MODELS/Palladio.resourcetype#_oro4gG3fEdy4YaaT-RYrLQ"/>
-                    </resourceDemand_Action>
-                  </steps_Behaviour>
-                  <steps_Behaviour xsi:type="seff:InternalAction" id="WLCGBlueprint_runBlueprintJobSEFF_ioAction" entityName="ioAction" predecessor_AbstractAction="_hv4SYXIuEeikp-o7yZO_5A" successor_AbstractAction="WLCGBlueprint_runBlueprintJobSEFF_cpuAction">
-                    <resourceDemand_Action>
-                      <specification_ParametericResourceDemand specification="(IO_DEMAND.VALUE / NUMBER_REQUIRED_RESOURCES.VALUE) / RESOURCE_DEMAND_ROUNDS.VALUE"/>
-                      <requiredResource_ParametricResourceDemand href="pathmap://PCM_MODELS/Palladio.resourcetype#_BIjHoQ3KEdyouMqirZIhzQ"/>
-                    </resourceDemand_Action>
-                  </steps_Behaviour>
-                </bodyBehaviour_Loop>
-                <iterationCount_LoopAction specification="RESOURCE_DEMAND_ROUNDS.VALUE"/>
-              </steps_Behaviour>
-            </synchronousForkedBehaviours_SynchronisationPoint>
-          </synchronisingBehaviours_ForkAction>
-        </steps_Behaviour>
-        <steps_Behaviour xsi:type="seff:ExternalCallAction" id="_D6i9sKatEeiAoM15ZahjOw" entityName="ExternalCallAction1" calledService_ExternalService="_0GwHEKanEeiAoM15ZahjOw">
+        <steps_Behaviour xsi:type="seff:StartAction" id="_8nx_sWb7EeiZ7YhGqMXvDQ" successor_AbstractAction="_D6i9sKatEeiAoM15ZahjOw"/>
+        <steps_Behaviour xsi:type="seff:StopAction" id="_8nx_smb7EeiZ7YhGqMXvDQ" predecessor_AbstractAction="_D6i9sKatEeiAoM15ZahjOw"/>
+        <steps_Behaviour xsi:type="seff:ExternalCallAction" id="_D6i9sKatEeiAoM15ZahjOw" entityName="ExternalCallAction1" predecessor_AbstractAction="_8nx_sWb7EeiZ7YhGqMXvDQ" successor_AbstractAction="_8nx_smb7EeiZ7YhGqMXvDQ" calledService_ExternalService="_0GwHEKanEeiAoM15ZahjOw">
           <inputVariableUsages__CallAction>
             <variableCharacterisation_VariableUsage type="VALUE">
               <specification_VariableCharacterisation specification="CPU_DEMAND.VALUE"/>
             </variableCharacterisation_VariableUsage>
             <namedReference__VariableUsage xsi:type="stoex:VariableReference" referenceName="cpuDemand"/>
           </inputVariableUsages__CallAction>
+          <inputVariableUsages__CallAction>
+            <variableCharacterisation_VariableUsage type="VALUE">
+              <specification_VariableCharacterisation specification="IO_DEMAND_FROM_RATIO.VALUE"/>
+            </variableCharacterisation_VariableUsage>
+            <namedReference__VariableUsage xsi:type="stoex:VariableReference" referenceName="ioDemand"/>
+          </inputVariableUsages__CallAction>
+          <inputVariableUsages__CallAction>
+            <variableCharacterisation_VariableUsage type="VALUE">
+              <specification_VariableCharacterisation specification="RESOURCE_DEMAND_ROUNDS.VALUE"/>
+            </variableCharacterisation_VariableUsage>
+            <namedReference__VariableUsage xsi:type="stoex:VariableReference" referenceName="resourceDemandRounds"/>
+          </inputVariableUsages__CallAction>
+          <inputVariableUsages__CallAction>
+            <variableCharacterisation_VariableUsage type="VALUE">
+              <specification_VariableCharacterisation specification="NUMBER_REQUIRED_RESOURCES.VALUE"/>
+            </variableCharacterisation_VariableUsage>
+            <namedReference__VariableUsage xsi:type="stoex:VariableReference" referenceName="threadCount"/>
+          </inputVariableUsages__CallAction>
         </steps_Behaviour>
       </serviceEffectSpecifications__BasicComponent>
     </components__Repository>
     <components__Repository xsi:type="repository:CompositeComponent" id="WLCGBlueprint_computeJobCompositeComponent" entityName="computeJob">
       <assemblyContexts__ComposedStructure id="_rGTQgGb8EeiZ7YhGqMXvDQ" entityName="jobBlueprintAssembly" encapsulatedComponent__AssemblyContext="WLCGBlueprint_blueprintJobComponent"/>
+      <assemblyContexts__ComposedStructure id="gridJobAssembly" entityName="Assembly_gridJob" encapsulatedComponent__AssemblyContext="gridJobComponent"/>
       <connectors__ComposedStructure xsi:type="composition:ProvidedDelegationConnector" id="_zLjgYGb8EeiZ7YhGqMXvDQ" entityName="newProvidedDelegationConnector" innerProvidedRole_ProvidedDelegationConnector="_8nbaYGb7EeiZ7YhGqMXvDQ" outerProvidedRole_ProvidedDelegationConnector="_ZU5rcGb8EeiZ7YhGqMXvDQ" assemblyContext_ProvidedDelegationConnector="_rGTQgGb8EeiZ7YhGqMXvDQ"/>
+      <connectors__ComposedStructure xsi:type="composition:AssemblyConnector" id="_GKrwIKa0EeiemMvUa_9B1w" entityName="newAssemblyConnector" requiringAssemblyContext_AssemblyConnector="_rGTQgGb8EeiZ7YhGqMXvDQ" providingAssemblyContext_AssemblyConnector="gridJobAssembly" providedRole_AssemblyConnector="gridJobProvidedRole" requiredRole_AssemblyConnector="_40eZcKayEeiemMvUa_9B1w"/>
       <providedRoles_InterfaceProvidingEntity xsi:type="repository:OperationProvidedRole" id="_ZU5rcGb8EeiZ7YhGqMXvDQ" entityName="blueprintCompositeProvidedRole" providedInterface__OperationProvidedRole="_oMJpAGb7EeiZ7YhGqMXvDQ"/>
     </components__Repository>
-    <components__Repository xsi:type="repository:BasicComponent" id="_QWOC8KanEeiAoM15ZahjOw" entityName="gridJob">
-      <providedRoles_InterfaceProvidingEntity xsi:type="repository:OperationProvidedRole" id="_Vvq-cKaoEeiAoM15ZahjOw" entityName="gridJob.gridJobInterface.OperationProvidedRole1" providedInterface__OperationProvidedRole="_iuASkKanEeiAoM15ZahjOw"/>
-      <serviceEffectSpecifications__BasicComponent xsi:type="seff:ResourceDemandingSEFF" id="_VwO_IKaoEeiAoM15ZahjOw" describedService__SEFF="_0GwHEKanEeiAoM15ZahjOw">
-        <steps_Behaviour xsi:type="seff:StartAction" id="_VwPmMKaoEeiAoM15ZahjOw" successor_AbstractAction="_ZCmHy6aoEeiAoM15ZahjOw"/>
-        <steps_Behaviour xsi:type="seff:StopAction" id="_VwPmMaaoEeiAoM15ZahjOw" predecessor_AbstractAction="_ZCmHy6aoEeiAoM15ZahjOw"/>
-        <steps_Behaviour xsi:type="seff:ForkAction" id="_ZCmHy6aoEeiAoM15ZahjOw" entityName="concurrentResourceDemands" predecessor_AbstractAction="_VwPmMKaoEeiAoM15ZahjOw" successor_AbstractAction="_VwPmMaaoEeiAoM15ZahjOw">
+    <components__Repository xsi:type="repository:BasicComponent" id="gridJobComponent" entityName="gridJob">
+      <providedRoles_InterfaceProvidingEntity xsi:type="repository:OperationProvidedRole" id="gridJobProvidedRole" entityName="gridJob.gridJobInterface.OperationProvidedRole1" providedInterface__OperationProvidedRole="_iuASkKanEeiAoM15ZahjOw"/>
+      <serviceEffectSpecifications__BasicComponent xsi:type="seff:ResourceDemandingSEFF" id="gridJobSEFF" describedService__SEFF="_0GwHEKanEeiAoM15ZahjOw">
+        <steps_Behaviour xsi:type="seff:StartAction" id="_VwPmMKaoEeiAoM15ZahjOw" successor_AbstractAction="blueprintForkAction"/>
+        <steps_Behaviour xsi:type="seff:StopAction" id="_VwPmMaaoEeiAoM15ZahjOw" predecessor_AbstractAction="blueprintForkAction"/>
+        <steps_Behaviour xsi:type="seff:ForkAction" id="blueprintForkAction" entityName="concurrentResourceDemands" predecessor_AbstractAction="_VwPmMKaoEeiAoM15ZahjOw" successor_AbstractAction="_VwPmMaaoEeiAoM15ZahjOw">
           <synchronisingBehaviours_ForkAction id="_ZCmu0KaoEeiAoM15ZahjOw">
             <synchronousForkedBehaviours_SynchronisationPoint id="_ZCmu0aaoEeiAoM15ZahjOw">
               <steps_Behaviour xsi:type="seff:StartAction" id="_ZCmu0qaoEeiAoM15ZahjOw" successor_AbstractAction="_ZCmu1KaoEeiAoM15ZahjOw"/>
