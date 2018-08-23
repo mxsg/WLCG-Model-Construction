@@ -3,7 +3,7 @@
   <repository:Repository id="_6967YGb6EeiZ7YhGqMXvDQ" entityName="jobsRepository">
     <components__Repository xsi:type="repository:BasicComponent" id="WLCGBlueprint_blueprintJobComponent" entityName="jobBlueprint">
       <providedRoles_InterfaceProvidingEntity xsi:type="repository:OperationProvidedRole" id="_8nbaYGb7EeiZ7YhGqMXvDQ" entityName="blueprintBasicProvidedRole" providedInterface__OperationProvidedRole="_oMJpAGb7EeiZ7YhGqMXvDQ"/>
-      <requiredRoles_InterfaceRequiringEntity xsi:type="repository:OperationRequiredRole" id="_40eZcKayEeiemMvUa_9B1w" entityName="jobBlueprint.gridJobInterface.OperationRequiredRole1" requiredInterface__OperationRequiredRole="_iuASkKanEeiAoM15ZahjOw"/>
+      <requiredRoles_InterfaceRequiringEntity xsi:type="repository:OperationRequiredRole" id="_40eZcKayEeiemMvUa_9B1w" entityName="jobBlueprint.gridJobInterface.OperationRequiredRole1" requiredInterface__OperationRequiredRole="gridJobInterface"/>
       <componentParameterUsage_ImplementationComponentType>
         <variableCharacterisation_VariableUsage type="VALUE">
           <specification_VariableCharacterisation specification="0.0"/>
@@ -61,7 +61,7 @@
       <providedRoles_InterfaceProvidingEntity xsi:type="repository:OperationProvidedRole" id="_ZU5rcGb8EeiZ7YhGqMXvDQ" entityName="blueprintCompositeProvidedRole" providedInterface__OperationProvidedRole="_oMJpAGb7EeiZ7YhGqMXvDQ"/>
     </components__Repository>
     <components__Repository xsi:type="repository:BasicComponent" id="gridJobComponent" entityName="gridJob">
-      <providedRoles_InterfaceProvidingEntity xsi:type="repository:OperationProvidedRole" id="gridJobProvidedRole" entityName="gridJob.gridJobInterface.OperationProvidedRole1" providedInterface__OperationProvidedRole="_iuASkKanEeiAoM15ZahjOw"/>
+      <providedRoles_InterfaceProvidingEntity xsi:type="repository:OperationProvidedRole" id="gridJobProvidedRole" entityName="gridJob.gridJobInterface.OperationProvidedRole1" providedInterface__OperationProvidedRole="gridJobInterface"/>
       <serviceEffectSpecifications__BasicComponent xsi:type="seff:ResourceDemandingSEFF" id="gridJobSEFF" describedService__SEFF="_0GwHEKanEeiAoM15ZahjOw">
         <steps_Behaviour xsi:type="seff:StartAction" id="_VwPmMKaoEeiAoM15ZahjOw" successor_AbstractAction="blueprintForkAction"/>
         <steps_Behaviour xsi:type="seff:StopAction" id="_VwPmMaaoEeiAoM15ZahjOw" predecessor_AbstractAction="blueprintForkAction"/>
@@ -97,7 +97,7 @@
     <interfaces__Repository xsi:type="repository:OperationInterface" id="_oMJpAGb7EeiZ7YhGqMXvDQ" entityName="blueprintJobInterface">
       <signatures__OperationInterface id="_pvENQGb7EeiZ7YhGqMXvDQ" entityName="runBlueprintJob"/>
     </interfaces__Repository>
-    <interfaces__Repository xsi:type="repository:OperationInterface" id="_iuASkKanEeiAoM15ZahjOw" entityName="gridJobInterface">
+    <interfaces__Repository xsi:type="repository:OperationInterface" id="gridJobInterface" entityName="Grid Job Interface">
       <signatures__OperationInterface id="_0GwHEKanEeiAoM15ZahjOw" entityName="runGridJob">
         <parameters__OperationSignature parameterName="cpuDemand">
           <dataType__Parameter xsi:type="repository:PrimitiveDataType" href="pathmap://PCM_MODELS/PrimitiveTypes.repository#//@dataTypes__Repository.3"/>
