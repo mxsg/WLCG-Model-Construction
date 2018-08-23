@@ -293,6 +293,10 @@ public class WLCGModelConstructor {
         List<Interface> interfaces = repository.getInterfaces__Repository();
         OperationInterface gridJobInterface = (OperationInterface) ModelConstructionUtils.findObjectWithId(interfaces, GRID_JOB_INTERFACE);
 
+        if (gridJobInterface == null) {
+            throw new IllegalArgumentException("Invalid model blueprint, missing grid job interface!");
+        }
+
         // Complete SEFF for Grid Job Component
         BasicComponent gridJob = (BasicComponent) ModelConstructionUtils
                 .findObjectWithId(components, BLUEPRINT_GRID_JOB_COMPONENT_ID);
