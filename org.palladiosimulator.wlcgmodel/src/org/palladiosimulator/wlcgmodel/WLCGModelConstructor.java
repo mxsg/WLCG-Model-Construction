@@ -523,7 +523,13 @@ public class WLCGModelConstructor {
 
             // Set HDD properties, keep rate the same
             // TODO Set to concurrent situation?
-            hddResourceSpec.setNumberOfReplicas(nodeType.getCores());
+            //hddResourceSpec.setNumberOfReplicas(nodeType.getCores());
+            hddResourceSpec.setNumberOfReplicas(1);
+            
+            PCMRandomVariable processingRateHDD = CoreFactory.eINSTANCE.createPCMRandomVariable();
+            processingRateHDD.setSpecification(String.valueOf(nodeType.getCores()));
+            
+            hddResourceSpec.setProcessingRate_ProcessingResourceSpecification(processingRateHDD);
             hddResourceSpec.setResourceContainer_ProcessingResourceSpecification(newNode);
 
             // Add new measuring points for the new resource
