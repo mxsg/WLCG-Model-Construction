@@ -123,6 +123,13 @@ public class WLCGModelConstructor {
 
     private List<ResourceContainer> resourceContainerTypes = new ArrayList<>();
     private AssemblyContext computeJobAssembly = null;
+    
+    private static final boolean DUPLICATE_IO = true;
+    private static final boolean FAST_IO  = false;
+    private static final boolean JOBSLOTS_IO = true;
+    
+    private static final boolean USE_IO_RATIO = false;
+    private static final int RESOURCE_ROUNDS = 10;
 
     /**
      * Create a simulation model construction object.
@@ -521,13 +528,28 @@ public class WLCGModelConstructor {
 
             cpuResourceSpec.setProcessingRate_ProcessingResourceSpecification(processingRate);
 
-            // Set HDD properties, keep rate the same
-            // TODO Set to concurrent situation?
-            //hddResourceSpec.setNumberOfReplicas(nodeType.getCores());
-            hddResourceSpec.setNumberOfReplicas(1);
+            // Set I/O properties
+            int ioReplicas = 1;
+            if (DUPLICATE_IO) {
+            	ioReplicas = nodeType.getCores();
+                if (JOBSLOTS_IO) {
+                	ioReplicas = nodeType.getJobslots();
+                }
+            }
+            hddResourceSpec.setNumberOfReplicas(ioReplicas);
+            
             
             PCMRandomVariable processingRateHDD = CoreFactory.eINSTANCE.createPCMRandomVariable();
-            processingRateHDD.setSpecification(String.valueOf(nodeType.getCores()));
+            
+            int ioRate = 1;
+            if (FAST_IO) {
+            	ioRate = nodeType.getCores();
+            	if (JOBSLOTS_IO) {
+            		ioRate = nodeType.getJobslots();
+            	}
+            }
+            processingRateHDD.setSpecification(String.valueOf(ioRate));
+
             
             hddResourceSpec.setProcessingRate_ProcessingResourceSpecification(processingRateHDD);
             hddResourceSpec.setResourceContainer_ProcessingResourceSpecification(newNode);
@@ -848,7 +870,7 @@ public class WLCGModelConstructor {
         component.getComponentParameterUsage_ImplementationComponentType().add(ioTimeVariableUsage);
 
         VariableUsage resourceDemandRounds = ModelConstructionUtils
-                .createVariableUsageWithValue("RESOURCE_DEMAND_ROUNDS", Integer.toString(10));
+                .createVariableUsageWithValue("RESOURCE_DEMAND_ROUNDS", Integer.toString(RESOURCE_ROUNDS));
         component.getComponentParameterUsage_ImplementationComponentType().add(resourceDemandRounds);
 
         // Add component to repository
@@ -862,8 +884,16 @@ public class WLCGModelConstructor {
         assembly.setEntityName("assembly_context_" + jobTypeName);
 
         // Add dependent parameter usage
-        VariableUsage ioFromRatioVariableUsage = ModelConstructionUtils
-                .createVariableUsageWithValue("IO_DEMAND_FROM_RATIO", "IO_RATIO.VALUE * CPU_DEMAND.VALUE");
+        VariableUsage ioFromRatioVariableUsage = null;
+        if (USE_IO_RATIO) {
+            ioFromRatioVariableUsage = ModelConstructionUtils
+                    .createVariableUsageWithValue("IO_DEMAND_FROM_RATIO", "IO_RATIO.VALUE * CPU_DEMAND.VALUE");
+        } else {
+            ioFromRatioVariableUsage = ModelConstructionUtils
+                    .createVariableUsageWithValue("IO_DEMAND_FROM_RATIO", "IO_DEMAND.VALUE");
+
+        }
+        
         assembly.getConfigParameterUsages__AssemblyContext().add((ioFromRatioVariableUsage));
 
         // Provided Role for the Composite Component (Computing Job)
