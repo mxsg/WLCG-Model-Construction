@@ -99,7 +99,6 @@ public class WLCGModelConstructor {
     private static final String BLUEPRINT_JOB_SEFF = "WLCGBlueprint_runBlueprintJobSEFF";
     private static final String BLUEPRINT_JOB_EXTERNAL_CALL_ACTION = "jobExternalCallAction";
 
-    private static final String BLUEPRINT_JOB_FORK = "WLCGBlueprint_runBlueprintJobSEFF_forkAction";
     private static final String BLUEPRINT_FORK_ACTION = "blueprintForkAction";
 
     private static final String COMPUTE_ASSEMBLY_CONTEXT_SYSTEM = "WLCGBlueprint_computeJobAssemblyContextSystem";
@@ -123,14 +122,9 @@ public class WLCGModelConstructor {
 
     private List<ResourceContainer> resourceContainerTypes = new ArrayList<>();
     private AssemblyContext computeJobAssembly = null;
-    
+
     private static final boolean DUPLICATE_IO = true;
-    private static final boolean FAST_IO  = false;
-    private static final int IO_OVERALLOCATION = 1;
-    private static final boolean JOBSLOTS_IO = true;
-    
-    private static final boolean USE_IO_RATIO = true;
-    private static final int RESOURCE_ROUNDS = 10;
+    private static final boolean FAST_IO = false;
 
     /**
      * Create a simulation model construction object.
@@ -239,10 +233,9 @@ public class WLCGModelConstructor {
         // Remove blueprint monitor from monitor repository
         blueprintResponseTimeMonitor.setMonitorRepository(null);
 
-
         // Insert monitors for job response times
-        Monitor blueprintJobResponseTimeMonitor = ModelConstructionUtils
-                .findObjectWithId(allMonitors, BLUEPRINT_EXTERNAL_CALL_MONITOR);
+        Monitor blueprintJobResponseTimeMonitor = ModelConstructionUtils.findObjectWithId(allMonitors,
+                BLUEPRINT_EXTERNAL_CALL_MONITOR);
 
         if (blueprintJobResponseTimeMonitor == null) {
             throw new IllegalArgumentException("Invalid monitor repository, missing external call monitor.");
@@ -255,7 +248,6 @@ public class WLCGModelConstructor {
 
         // Remove blueprint monitor from monitor repository
         blueprintJobResponseTimeMonitor.setMonitorRepository(null);
-
 
         // Complete Allocation Model
         Resource allocationModelResource = resourceSet.getResource(modelsPath.appendSegment(ALLOCATION_MODEL_FILENAME),
@@ -323,18 +315,19 @@ public class WLCGModelConstructor {
 
         // Get the grid job Interface
         List<Interface> interfaces = repository.getInterfaces__Repository();
-        OperationInterface gridJobInterface = (OperationInterface) ModelConstructionUtils.findObjectWithId(interfaces, GRID_JOB_INTERFACE);
+        OperationInterface gridJobInterface = (OperationInterface) ModelConstructionUtils.findObjectWithId(interfaces,
+                GRID_JOB_INTERFACE);
 
         if (gridJobInterface == null) {
             throw new IllegalArgumentException("Invalid model blueprint, missing grid job interface!");
         }
 
         // Complete SEFF for Grid Job Component
-        BasicComponent gridJob = (BasicComponent) ModelConstructionUtils
-                .findObjectWithId(components, BLUEPRINT_GRID_JOB_COMPONENT_ID);
+        BasicComponent gridJob = (BasicComponent) ModelConstructionUtils.findObjectWithId(components,
+                BLUEPRINT_GRID_JOB_COMPONENT_ID);
 
-        OperationProvidedRole gridJobProvidedRole = (OperationProvidedRole) ModelConstructionUtils
-                .findObjectWithId(gridJob.getProvidedRoles_InterfaceProvidingEntity(), BLUEPRINT_GRID_JOB_PROVIDED_ROLE);
+        OperationProvidedRole gridJobProvidedRole = (OperationProvidedRole) ModelConstructionUtils.findObjectWithId(
+                gridJob.getProvidedRoles_InterfaceProvidingEntity(), BLUEPRINT_GRID_JOB_PROVIDED_ROLE);
 
         ServiceEffectSpecification gridJobSeff = ModelConstructionUtils
                 .findObjectWithId(gridJob.getServiceEffectSpecifications__BasicComponent(), BLUEPRINT_GRID_JOB_SEFF);
@@ -351,6 +344,12 @@ public class WLCGModelConstructor {
         }
     }
 
+    /**
+     * Duplicate the provided SEFF for use with multithreaded job execution.
+     *
+     * @param seff
+     *            The SEFF to be duplicated.
+     */
     private void constructMultithreadedSEFF(ResourceDemandingSEFF seff) {
 
         ForkAction forkAction = null;
@@ -532,27 +531,18 @@ public class WLCGModelConstructor {
             // Set I/O properties
             int ioReplicas = 1;
             if (DUPLICATE_IO) {
-            	ioReplicas = nodeType.getCores();
-                if (JOBSLOTS_IO) {
-                	ioReplicas = nodeType.getJobslots();
-                }
+                ioReplicas = nodeType.getJobslots();
             }
             hddResourceSpec.setNumberOfReplicas(ioReplicas);
-            
-            
+
             PCMRandomVariable processingRateHDD = CoreFactory.eINSTANCE.createPCMRandomVariable();
-            
+
             int ioRate = 1;
             if (FAST_IO) {
-            	ioRate = nodeType.getCores();
-            	if (JOBSLOTS_IO) {
-            		ioRate = nodeType.getJobslots();
-            	}
+                ioRate = nodeType.getJobslots();
             }
-            ioRate *= IO_OVERALLOCATION;
             processingRateHDD.setSpecification(String.valueOf(ioRate));
 
-            
             hddResourceSpec.setProcessingRate_ProcessingResourceSpecification(processingRateHDD);
             hddResourceSpec.setResourceContainer_ProcessingResourceSpecification(newNode);
 
@@ -717,15 +707,32 @@ public class WLCGModelConstructor {
 
     }
 
-    private void addExternalCallMonitoring(MeasuringPointRepository measuringPointRepo, MonitorRepository monitorRepo, ExternalCallAction externalCall,
-            Monitor originalMonitor, String additionalSuffix) {
+    /**
+     * Add a monitor and corresponding measuring point for the provided External Call Action.
+     *
+     * @param measuringPointRepo
+     *            The measuring point repository the new measuring point should be placed in.
+     * @param monitorRepo
+     *            The repository the duplicated monitors should be inserted into.
+     *
+     * @param externalCall
+     *            The External Call Action to be monitored.
+     * @param originalMonitor
+     *            The monitor to be duplicated.
+     * @param additionalSuffix
+     *            An additional suffix to be appended to the names and IDs of the generated model
+     *            elements.
+     */
+    private void addExternalCallMonitoring(MeasuringPointRepository measuringPointRepo, MonitorRepository monitorRepo,
+            ExternalCallAction externalCall, Monitor originalMonitor, String additionalSuffix) {
 
         if (additionalSuffix == null) {
             additionalSuffix = "";
         }
 
         // Add a new measuring point for the external call
-        ExternalCallActionMeasuringPoint point = PcmmeasuringpointFactory.eINSTANCE.createExternalCallActionMeasuringPoint();
+        ExternalCallActionMeasuringPoint point = PcmmeasuringpointFactory.eINSTANCE
+                .createExternalCallActionMeasuringPoint();
         point.setExternalCall(externalCall);
         point.setMeasuringPointRepository(measuringPointRepo);
 
@@ -778,11 +785,17 @@ public class WLCGModelConstructor {
      * @param stereotypeToApply
      *            A stereotype to be added to the component. No stereotype will be added if this is
      *            null.
+     * @param requiredJobInterface
+     *            The job component interface that is required in this component.
+     * @param gridJobProvidedRole
+     *            The provided role for the GridJob component that is used to execute this job's
+     *            resource demands.
      * @return A new basic component created from the job type description.
      */
     private BasicComponent buildAndAddJobComponentWithProvidedInterface(Repository repository,
             JobTypeDescription jobType, ResourceDemandingSEFF blueprintSeff, CompositeComponent computeJob,
-            Stereotype stereotypeToApply, OperationInterface requiredJobInterface, OperationProvidedRole gridJobProvidedRole) {
+            Stereotype stereotypeToApply, OperationInterface requiredJobInterface,
+            OperationProvidedRole gridJobProvidedRole) {
 
         BasicComponent component = RepositoryFactory.eINSTANCE.createBasicComponent();
 
@@ -828,7 +841,6 @@ public class WLCGModelConstructor {
         // Add the provided role to the component
         component.getProvidedRoles_InterfaceProvidingEntity().add(opProvidedRole);
 
-
         // Add required role to the component
         OperationRequiredRole requiredRole = RepositoryFactory.eINSTANCE.createOperationRequiredRole();
         requiredRole.setEntityName("required_role_component_" + jobTypeName);
@@ -839,9 +851,9 @@ public class WLCGModelConstructor {
         // Add the required role to the component as well
         component.getRequiredRoles_InterfaceRequiringEntity().add(requiredRole);
 
-
         ResourceDemandingSEFF seff = EcoreUtil.copy(blueprintSeff);
-        ExternalCallAction externalCall = (ExternalCallAction) ModelConstructionUtils.findObjectWithId(seff.getSteps_Behaviour(), BLUEPRINT_JOB_EXTERNAL_CALL_ACTION);
+        ExternalCallAction externalCall = (ExternalCallAction) ModelConstructionUtils
+                .findObjectWithId(seff.getSteps_Behaviour(), BLUEPRINT_JOB_EXTERNAL_CALL_ACTION);
 
         // Set the correct role for the job component's external call to the generic grid job
         externalCall.setRole_ExternalService(requiredRole);
@@ -872,7 +884,7 @@ public class WLCGModelConstructor {
         component.getComponentParameterUsage_ImplementationComponentType().add(ioTimeVariableUsage);
 
         VariableUsage resourceDemandRounds = ModelConstructionUtils
-                .createVariableUsageWithValue("RESOURCE_DEMAND_ROUNDS", Integer.toString(RESOURCE_ROUNDS));
+                .createVariableUsageWithValue("RESOURCE_DEMAND_ROUNDS", jobType.getResourceDemandRounds());
         component.getComponentParameterUsage_ImplementationComponentType().add(resourceDemandRounds);
 
         // Add component to repository
@@ -887,15 +899,15 @@ public class WLCGModelConstructor {
 
         // Add dependent parameter usage
         VariableUsage ioFromRatioVariableUsage = null;
-        if (USE_IO_RATIO) {
-            ioFromRatioVariableUsage = ModelConstructionUtils
-                    .createVariableUsageWithValue("IO_DEMAND_FROM_RATIO", "IO_RATIO.VALUE * CPU_DEMAND.VALUE");
+        if (jobType.getUseIoRatio()) {
+            ioFromRatioVariableUsage = ModelConstructionUtils.createVariableUsageWithValue("IO_DEMAND_FROM_RATIO",
+                    "IO_RATIO.VALUE * CPU_DEMAND.VALUE");
         } else {
-            ioFromRatioVariableUsage = ModelConstructionUtils
-                    .createVariableUsageWithValue("IO_DEMAND_FROM_RATIO", "IO_DEMAND.VALUE");
+            ioFromRatioVariableUsage = ModelConstructionUtils.createVariableUsageWithValue("IO_DEMAND_FROM_RATIO",
+                    "IO_DEMAND.VALUE");
 
         }
-        
+
         assembly.getConfigParameterUsages__AssemblyContext().add((ioFromRatioVariableUsage));
 
         // Provided Role for the Composite Component (Computing Job)
@@ -917,7 +929,8 @@ public class WLCGModelConstructor {
 
         // Create connection between basic component and grid job component
         List<AssemblyContext> computeJobAssemblies = computeJob.getAssemblyContexts__ComposedStructure();
-        AssemblyContext gridJobAssembly = ModelConstructionUtils.findObjectWithId(computeJobAssemblies, BLUEPRINT_GRID_JOB_ASSEMBLY);
+        AssemblyContext gridJobAssembly = ModelConstructionUtils.findObjectWithId(computeJobAssemblies,
+                BLUEPRINT_GRID_JOB_ASSEMBLY);
 
         AssemblyConnector gridJobConnector = CompositionFactory.eINSTANCE.createAssemblyConnector();
         gridJobConnector.setProvidedRole_AssemblyConnector(gridJobProvidedRole);

@@ -17,6 +17,8 @@ public class JobTypeDescription {
     private double relativeFrequency = 0.0;
     private String ioTimeRatioStoEx = null;
     private int schedulingDelay = 0;
+    private boolean useIoRatio = true;
+    private String resourceDemandRounds = "10";
 
     /**
      * Construct a new job type description instance
@@ -142,6 +144,34 @@ public class JobTypeDescription {
      */
     public void setSchedulingDelay(int schedulingDelay) {
         this.schedulingDelay = schedulingDelay;
+    }
+
+    /**
+     * @return the useIoRatio
+     */
+    public boolean getUseIoRatio() {
+        return useIoRatio;
+    }
+
+    /**
+     * @param useIoRatio the useIoRatio to set
+     */
+    public void setUseIoRatio(boolean useIoRatio) {
+        this.useIoRatio = useIoRatio;
+    }
+
+    /**
+     * @return the resourceDemandRounds
+     */
+    public String getResourceDemandRounds() {
+        return resourceDemandRounds;
+    }
+
+    /**
+     * @param resourceDemandRounds the resourceDemandRounds to set
+     */
+    public void setResourceDemandRounds(String resourceDemandRounds) {
+        this.resourceDemandRounds = resourceDemandRounds;
     }
 
     @Override
