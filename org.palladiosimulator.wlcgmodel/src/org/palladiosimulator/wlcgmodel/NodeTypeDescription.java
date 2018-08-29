@@ -98,6 +98,7 @@ public class NodeTypeDescription {
 
     @Override
     public String toString() {
-        return "Name: " + this.name + ", " + this.cores + " cores," + this.jobslots + " jobslots," + this.nodeCount + " machines";
+        return "Name: " + this.name + ", " + this.cores + " cores," + this.jobslots + " jobslots," + this.nodeCount
+                + " machines";
     }
 }

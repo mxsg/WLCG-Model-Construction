@@ -20,57 +20,39 @@ import com.google.gson.JsonSyntaxException;
  */
 public class ParameterJSONImportHelper {
 
-    // TODO Consolidate methods in a more generic way
-
     /**
-     * Read and parse a JSON file that contains descriptions of node types.
+     * Read and parse a JSON file that contains descriptions of a certain parameter set type.
      *
      * @param jsonFile
      *            The JSON file to read.
-     * @return A list of node type description objects.
-     * @throws IOException
-     *             Thrown if reading the JSON file encounters a problem.
-     * @throws JsonSyntaxException
-     *             Thrown if the JSON file has an invalid structure.
+     * @param classOfT
+     *            Class of the description file to read.
+     * @param <T>
+     *            Class of the description file to be read.
+     * @return A list of job type description objects, or null if the import failed.
      */
-    public static List<NodeTypeDescription> readNodeTypes(File jsonFile) throws IOException, JsonSyntaxException {
+    public static <T> List<T> readParameterFile(File jsonFile, Class<T> classOfT) {
 
-        List<NodeTypeDescription> result = null;
+        List<T> result = null;
+        try {
+            InputStream stream = new FileInputStream(jsonFile);
+            Reader reader = new InputStreamReader(stream);
 
-        InputStream stream = new FileInputStream(jsonFile);
-        Reader reader = new InputStreamReader(stream);
+            Gson gson = new Gson();
+            try {
+                result = Arrays.asList(gson.fromJson(reader, classOfT));
+            } catch (JsonSyntaxException e) {
+                System.out.println("File " + jsonFile + " does not have correct JSON syntax:" + e);
+                return null;
+            }
 
-        Gson gson = new Gson();
+            reader.close();
 
-        result = Arrays.asList(gson.fromJson(reader, NodeTypeDescription[].class));
+        } catch (IOException e) {
+            System.out.println("Could not read node type file: " + jsonFile);
+            result = null;
+        }
 
-        reader.close();
-        return result;
-    }
-
-    /**
-     * Read and parse a JSON file that contains descriptions of job types.
-     *
-     * @param jsonFile
-     *            The JSON file to read.
-     * @return A list of job type description objects.
-     * @throws IOException
-     *             Thrown if reading the JSON file encounters a problem.
-     * @throws JsonSyntaxException
-     *             Thrown if the JSON file has an invalid structure.
-     */
-    public static List<JobTypeDescription> readJobTypes(File jsonFile) throws IOException, JsonSyntaxException {
-
-        List<JobTypeDescription> result = null;
-
-        InputStream stream = new FileInputStream(jsonFile);
-        Reader reader = new InputStreamReader(stream);
-
-        Gson gson = new Gson();
-
-        result = Arrays.asList(gson.fromJson(reader, JobTypeDescription[].class));
-
-        reader.close();
         return result;
     }
 }

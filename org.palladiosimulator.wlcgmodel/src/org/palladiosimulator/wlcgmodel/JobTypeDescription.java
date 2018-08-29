@@ -154,7 +154,8 @@ public class JobTypeDescription {
     }
 
     /**
-     * @param useIoRatio the useIoRatio to set
+     * @param useIoRatio
+     *            the useIoRatio to set
      */
     public void setUseIoRatio(boolean useIoRatio) {
         this.useIoRatio = useIoRatio;
@@ -168,7 +169,8 @@ public class JobTypeDescription {
     }
 
     /**
-     * @param resourceDemandRounds the resourceDemandRounds to set
+     * @param resourceDemandRounds
+     *            the resourceDemandRounds to set
      */
     public void setResourceDemandRounds(String resourceDemandRounds) {
         this.resourceDemandRounds = resourceDemandRounds;

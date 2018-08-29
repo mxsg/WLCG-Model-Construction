@@ -1,6 +1,5 @@
 package org.palladiosimulator.wlcgmodel;
 
-import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -15,7 +14,6 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.modelversioning.emfprofile.Stereotype;
-import org.palladiosimulator.commons.eclipseutils.FileHelper;
 import org.palladiosimulator.edp2.models.measuringpoint.MeasuringPoint;
 import org.palladiosimulator.edp2.models.measuringpoint.MeasuringPointRepository;
 import org.palladiosimulator.mdsdprofiles.api.StereotypeAPI;
@@ -126,45 +124,12 @@ public class WLCGModelConstructor {
     private static final boolean DUPLICATE_IO = true;
     private static final boolean FAST_IO = false;
 
+    private List<Resource> openedResources = new ArrayList<>();
+
     /**
      * Create a simulation model construction object.
      */
     public WLCGModelConstructor() {
-    }
-
-    /**
-     * Load model calibration parameters from a directory and use them to complete the simulation
-     * model from a model blueprint. Models are modified and completed inplace.
-     *
-     * @param modelsPath
-     *            The path to the directory the blueprint models are stored in.
-     * @param parameterPath
-     *            The path to the directory the model parameter files are stored in.
-     */
-    public void loadParametersAndCompleteModels(final URI modelsPath, final URI parameterPath) {
-        // Find parameter files and import data
-        String nodeDescriptionPath = parameterPath.appendSegment(Config.NODE_DESCRIPTION_FILENAME).toString();
-        File nodeDescriptionFile = FileHelper.getFile(nodeDescriptionPath);
-
-        List<NodeTypeDescription> nodes = new ArrayList<>();
-        try {
-            nodes = ParameterJSONImportHelper.readNodeTypes(nodeDescriptionFile);
-        } catch (Exception e) {
-            System.out.println("Something went wrong when importing node types! Error: " + e);
-        }
-
-        String jobTypeDescriptionPath = parameterPath.appendSegment(Config.JOBS_DESCRIPTION_FILENAME).toString();
-        File jobDescriptionFile = FileHelper.getFile(jobTypeDescriptionPath);
-        List<JobTypeDescription> jobs = new ArrayList<>();
-        try {
-            jobs = ParameterJSONImportHelper.readJobTypes(jobDescriptionFile);
-        } catch (Exception e) {
-            System.out.println("Something went wrong when importing jobs types! Error: " + e);
-        }
-
-        // Attempt to complete models
-        completeModels(modelsPath, nodes, jobs);
-
     }
 
     /**
@@ -183,41 +148,30 @@ public class WLCGModelConstructor {
 
         ResourceSet resourceSet = new ResourceSetImpl();
 
-        URI repositoryPath = modelsPath.appendSegment(REPO_MODEL_FILENAME);
-        Resource repositoryResource = resourceSet.getResource(repositoryPath, true);
-        Repository repository = (Repository) repositoryResource.getContents().get(0);
+        Repository repository = loadModel(modelsPath, REPO_MODEL_FILENAME, resourceSet, Repository.class);
 
         // Complete the repository model
         this.completeRepositoryModel(repository, jobs);
 
         // Load monitor repositories
-        URI measuringpointPath = modelsPath.appendSegment(MONITOR_DIRECTORY_NAME)
-                .appendSegment(MEASURINGPOINT_REPOSITORY_FILENAME);
-        Resource measuringpointResource = resourceSet.getResource(measuringpointPath, true);
-        MeasuringPointRepository measuringPointRepo = (MeasuringPointRepository) measuringpointResource.getContents()
-                .get(0);
+        MeasuringPointRepository measuringPointRepo = loadModel(modelsPath.appendSegment(MONITOR_DIRECTORY_NAME),
+                MONITOR_REPOSITORY_FILENAME, resourceSet, MeasuringPointRepository.class);
 
-        URI monitorPath = modelsPath.appendSegment(MONITOR_DIRECTORY_NAME).appendSegment(MONITOR_REPOSITORY_FILENAME);
-        Resource monitorResource = resourceSet.getResource(monitorPath, true);
-        MonitorRepository monitorRepo = (MonitorRepository) monitorResource.getContents().get(0);
+        MonitorRepository monitorRepo = loadModel(modelsPath.appendSegment(MONITOR_DIRECTORY_NAME),
+                MEASURINGPOINT_REPOSITORY_FILENAME, resourceSet, MonitorRepository.class);
 
         // Complete the system model
-        Resource systemResource = resourceSet.getResource(modelsPath.appendSegment(SYSTEM_MODEL_FILENAME), true);
-        org.palladiosimulator.pcm.system.System system = (org.palladiosimulator.pcm.system.System) systemResource
-                .getContents().get(0);
-
+        org.palladiosimulator.pcm.system.System system = loadModel(modelsPath, SYSTEM_MODEL_FILENAME, resourceSet,
+                org.palladiosimulator.pcm.system.System.class);
         this.completeSystemModel(system, jobs, monitorRepo, measuringPointRepo);
 
         // Load and complete resource environment
-        Resource resourceEnvironmentResource = resourceSet
-                .getResource(modelsPath.appendSegment(RESOURCE_ENVIRONMENT_MODEL_FILENAME), true);
-        ResourceEnvironment resEnv = (ResourceEnvironment) resourceEnvironmentResource.getContents().get(0);
-
+        ResourceEnvironment resEnv = loadModel(modelsPath, RESOURCE_ENVIRONMENT_MODEL_FILENAME, resourceSet,
+                ResourceEnvironment.class);
         this.completeResourceEnvironment(resEnv, nodes, monitorRepo, measuringPointRepo);
 
         // Complete the Usage Model
-        Resource usageModelResource = resourceSet.getResource(modelsPath.appendSegment(USAGE_MODEL_FILENAME), true);
-        UsageModel usageModel = (UsageModel) usageModelResource.getContents().get(0);
+        UsageModel usageModel = loadModel(modelsPath, USAGE_MODEL_FILENAME, resourceSet, UsageModel.class);
 
         // Retrieve usage scenario response time monitor
         List<Monitor> allMonitors = monitorRepo.getMonitors();
@@ -266,13 +220,9 @@ public class WLCGModelConstructor {
 
         // Save all modified models
         try {
-            repositoryResource.save(null);
-            systemResource.save(null);
-            resourceEnvironmentResource.save(null);
-            usageModelResource.save(null);
-            allocationModelResource.save(null);
-            measuringpointResource.save(null);
-            monitorResource.save(null);
+            for (Resource resource : this.openedResources) {
+                resource.save(null);
+            }
         } catch (IOException e) {
             System.out.println("Error while saving resources, e: " + e);
         }
@@ -622,14 +572,12 @@ public class WLCGModelConstructor {
 
             BranchTransition newTransition = EcoreUtil.copy(blueprintTransition);
 
-            // TODO Maybe normalize or check the values here again in case of invalid JSON data?
-
             // Set correct branch probability
             newTransition.setBranchProbability(jobType.getRelativeFrequency());
 
             ScenarioBehaviour blueprintBehaviour = blueprintTransition.getBranchedBehaviour_BranchTransition();
             if (blueprintBehaviour == null) {
-                throwNewInvalidModelException("usage", "Could not find branched scenario behaviour!");
+                throwNewInvalidModelException("Usage Model", "Could not find branched scenario behaviour!");
             }
 
             EObject systemCallObject = ModelConstructionUtils.findObjectWithIdRecursively(newTransition,
@@ -878,7 +826,6 @@ public class WLCGModelConstructor {
                 jobType.getIoTimeRatioStoEx());
         component.getComponentParameterUsage_ImplementationComponentType().add(ioTimeRatioUsage);
 
-        // TODO This should be depending on the job length
         VariableUsage ioTimeVariableUsage = ModelConstructionUtils.createVariableUsageWithValue("IO_DEMAND",
                 jobType.getIoTimeStoEx());
         component.getComponentParameterUsage_ImplementationComponentType().add(ioTimeVariableUsage);
@@ -945,6 +892,40 @@ public class WLCGModelConstructor {
     }
 
     /**
+     * Load an Ecore model from the resource at the specified location. This also adds the loaded
+     * model's resource to
+     *
+     * @param modelsPath
+     *            The path to the model.
+     *
+     * @param modelFileName
+     *            The file name of the resource the model is contained in.
+     * @param resourceSet
+     *            The resource set to add the model to.
+     * @param modelClass
+     *            The class of the root element in the model.
+     * @param <T>
+     *            The class of the returned model root element.
+     * @return The read model.
+     */
+    @SuppressWarnings("unchecked")
+    private <T> T loadModel(final URI modelsPath, String modelFileName, ResourceSet resourceSet, Class<T> modelClass) {
+        URI modelPath = modelsPath.appendSegment(modelFileName);
+        Resource resource = resourceSet.getResource(modelPath, true);
+
+        openedResources.add(resource);
+
+        T repository = null;
+        try {
+            repository = (T) resource.getContents().get(0);
+        } catch (ClassCastException e) {
+            throwNewInvalidModelException(modelFileName, "The file does not contain a model of the correct type!");
+        }
+
+        return repository;
+    }
+
+    /**
      * Throw an exception indicating a blueprint model does not match the expected structure.
      *
      * @param affectedModel
@@ -952,7 +933,7 @@ public class WLCGModelConstructor {
      * @param message
      *            A message that describes why the model is invalid.
      */
-    private void throwNewInvalidModelException(String affectedModel, String message) {
+    private static void throwNewInvalidModelException(String affectedModel, String message) {
         String failureMessage = MessageFormat.format("Invalid {0} model: {1}", affectedModel, message);
         throw new IllegalArgumentException(failureMessage);
     }

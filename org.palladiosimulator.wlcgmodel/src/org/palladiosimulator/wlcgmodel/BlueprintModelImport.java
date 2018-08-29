@@ -1,15 +1,12 @@
 package org.palladiosimulator.wlcgmodel;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.emf.common.util.URI;
 import org.palladiosimulator.wlcgmodel.util.ProjectCreationHelper;
-
-import com.google.gson.JsonSyntaxException;
 
 /**
  * This class provides functionality to import and complete blueprint simulation models.
@@ -38,32 +35,16 @@ public class BlueprintModelImport {
 
         // Find parameter files and import data
 
-        List<NodeTypeDescription> nodes = null;
-        try {
-            nodes = ParameterJSONImportHelper.readNodeTypes(nodeDescriptionFile);
-        } catch (IOException e) {
-            System.out.println("Could not read node type file: " + nodeDescriptionFile);
-            return false;
-        } catch (JsonSyntaxException e) {
-            System.out.println("File " + nodeDescriptionFile + " does not have correct JSON syntax:" + e);
-            return false;
-        }
+        List<NodeTypeDescription> nodes = ParameterJSONImportHelper.readParameterFile(nodeDescriptionFile,
+                NodeTypeDescription.class);
 
         if (nodes == null) {
             System.out.println("Something went wrong when importing jobs types!");
             return false;
         }
 
-        List<JobTypeDescription> jobs = null;
-        try {
-            jobs = ParameterJSONImportHelper.readJobTypes(jobDescriptionFile);
-        } catch (IOException e) {
-            System.out.println("Could not read job type file: " + jobDescriptionFile);
-            return false;
-        } catch (JsonSyntaxException e) {
-            System.out.println("File " + jobDescriptionFile + " does not have correct JSON syntax:" + e);
-            return false;
-        }
+        List<JobTypeDescription> jobs = ParameterJSONImportHelper.readParameterFile(jobDescriptionFile,
+                JobTypeDescription.class);
 
         if (jobs == null) {
             System.out.println("Something went wrong when importing jobs types!");
