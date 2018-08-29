@@ -5,6 +5,7 @@ from __future__ import division
 
 import datetime
 import logging
+import math
 import os
 import re
 import sys
@@ -215,27 +216,98 @@ def visualize_utilization(utilization_timeseries: pd.DataFrame, path, core_col='
     return fig, axes
 
 
-def visualize_walltimes(df: pd.DataFrame, output_path, output_name, bin_count=50, reference: pd.DataFrame=None):
+def visualize_utilizations(utilizations: (str, pd.DataFrame), reference_utilizations=None, resample_freq=600,
+                           utilization_col='utilization', max_time=604800):
+    fig, axes = plt.subplots()
+    # max_time = None
+
+    for label, ts in utilizations:
+        ts = ts.copy()
+
+        ts['time_resampled'] = ts['time_start'].divide(resample_freq).apply(np.ceil).multiply(resample_freq)
+        utilization_resampled = ts.groupby('time_resampled')[utilization_col].mean()
+
+        axes = utilization_resampled.plot.line(ax=axes, label=label)
+
+        print("Max time: {}".format(max(utilization_resampled.index)))
+
+        # if max_time is None:
+        #     max_time = max(utilization_resampled.index)
+        # elif max_time > max(utilization_resampled.index):
+        #     max_time = max(utilization_resampled.index)
+
+    for label, reference in reference_utilizations:
+        axes.axhline(reference, label=label, color='C2')
+
+    # color='#ff7f0e'
+
+    axes.set_ylim(0, 1)
+    # max_time = max(utilization_resampled.index)
+
+    axes.set_xlim(left=0, right=max_time)
+
+    axes.legend()
+
+    axes.set_ylabel("CPU Utilization")
+    axes.set_xlabel("Time / s")
+    axes.set_title("Simulated and measured CPU utilization")
+
+    # fig = axes.get_figure()
+    return fig, axes
+
+
+def visualize_walltimes(df: pd.DataFrame, output_path, output_name, bin_count=50, reference: pd.DataFrame = None):
     required_columns = ['type', 'response_time']
 
     if not all(col in df.columns for col in required_columns):
         raise ValueError("Missing column for creating walltime visualization!")
 
-    for type in df['type'].unique():
-        fig, axes = plt.subplots()
+    jobtypes = df['type'].unique()
+
+    # Setup subplots
+    nplots = len(jobtypes)
+    ncols = 2
+    nrows = math.ceil(nplots / ncols)
+
+    fig, subplot_axes = plt.subplots(ncols=ncols, nrows=nrows)
+
+    for type, i_subplot in zip(jobtypes, range(len(jobtypes))):
+        axes = subplot_axes[i_subplot // ncols, i_subplot % ncols]
 
         jobs_of_type = df[df['type'] == type]
         reference_of_type = reference[reference['type'] == type]
 
-        n, bins, patches = axes.hist(jobs_of_type['response_time'], bins=bin_count, normed=True, label='simulated', histtype='step')
-        axes.hist(reference_of_type['walltime'], bins=bins, normed=True, label='measured', histtype='step')
+        n, bins, patches = axes.hist(jobs_of_type['response_time'], density=True, bins=bin_count, label='simulated',
+                                     histtype='stepfilled')
+        axes.hist(reference_of_type['walltime'], bins=bins, density=True, label='measured', histtype='step')
 
-        axes.legend()
+        simulated_average = jobs_of_type['response_time'].mean()
+        measured_average = reference_of_type['walltime'].mean()
+
+        axes.legend(['Simulated (average {:.0f}s)'.format(simulated_average),
+                     'Measured (average {:.0f}s)'.format(measured_average)])
+
+        axes.set_xlabel('Walltime / s')
+        axes.set_ylabel('Probability Density')
+
+        axes.set_title("{} ({} simulated jobs)".format(type, jobs_of_type.shape[0]))
+
+        # fig.tight_layout()
 
         # jobs_of_type['response_time'].plot.hist(ax=axes, bins=bins)
 
-        fig_path = os.path.join(output_path, "{}_{}.pdf".format(output_name, type))
-        fig.savefig(fig_path)
+        # fig_path = os.path.join(output_path, "{}_{}.pdf".format(output_name, type))
+        # fig.savefig(fig_path)
+
+    fig.set_size_inches(14, 12)
+    fig.tight_layout()
+
+    # Remove last plot if odd number of plots is encountered
+    if nplots % ncols != 0:
+        fig.delaxes(subplot_axes[nplots // ncols, nplots % 2])
+
+    # Add overview figure to the report
+    fig.savefig('walltime_distributions.pdf')
 
 
 def read_throughput_description(path):
@@ -247,13 +319,13 @@ def draw_throughput(job_type_throughputs):
     fig, axes = plt.subplots()
 
     # job_type_throughputs.sort_index(axis=1, inplace=True)
-    job_type_throughputs.sort_values(by='simulated', axis=1, ascending=False, inplace=True)
+    job_type_throughputs.sort_values(by='simulated\n(logical cores)', axis=1, ascending=False, inplace=True)
 
     job_type_throughputs.plot.barh(ax=axes, stacked=True)
 
-    axes.set_title('Simulated and measured job throughputs (May 2018)')
+    axes.set_title('Job throughputs, independent CPU and I/O distributions (May 2018)')
     axes.set_ylabel('')
-    axes.set_xlabel('Job throughput / (1 / day)')
+    axes.set_xlabel('Job throughput / day$^{-1}$')
     axes.legend(title="Job Types")
 
     fig.set_size_inches(8, 4)
@@ -261,6 +333,27 @@ def draw_throughput(job_type_throughputs):
     fig.tight_layout()
 
     return fig, axes
+
+def draw_job_type_composition(job_type_throughputs):
+    fig, axes = plt.subplots()
+
+    # job_type_throughputs.sort_index(axis=1, inplace=True)
+    job_type_throughputs.sort_values(by=job_type_throughputs.first_valid_index(), axis=1, ascending=False, inplace=True)
+    job_type_throughputs = job_type_throughputs.div(job_type_throughputs.sum(axis=1), axis=0)
+
+    job_type_throughputs.plot.barh(ax=axes, stacked=True)
+
+    axes.set_title('Job throughputs, independent CPU and I/O distributions (May 2018)')
+    axes.set_ylabel('')
+    axes.set_xlabel('Job throughput / day$^{-1}$')
+    axes.legend(title="Job Types")
+
+    fig.set_size_inches(8, 4)
+
+    fig.tight_layout()
+
+    return fig, axes
+
 
 
 def main():
@@ -271,7 +364,7 @@ def main():
 
     directory = sys.argv[1]
     print("Output directory: {}".format(directory))
-    output_file = 'results.txt'
+    output_file = 'results_visualization.txt'
 
     # Logging setup
     logging.basicConfig(
@@ -288,70 +381,23 @@ def main():
     logging.info("Results stored in file {} (in input directory).".format(output_file))
     logging.info("")
 
-    utilization_keyword = 'State_of_Active_Resource_Tuple'
-    overall_throughput_keyword = 'Usage_Scenario'
-    type_throughput_keyword = 'provided_role_system'
-    passive_resource_keyword = 'State_of_Passive_Resource_Tuple'
-    external_call_keyword = 'ExternalCall'
+    import json
+    with open(os.path.join(directory, 'metadata.json'), 'r') as infile:
+        metadata = json.load(infile)
 
-    # Compute core utilization
-    logging.info("## Core Utilizations")
+    walltimes = pd.read_csv(os.path.join(directory, 'walltimes.csv'))
+    utilization_timeseries = pd.read_csv(os.path.join(directory, 'utilization.csv'))
+    counts_simulated = pd.read_csv(os.path.join(directory, 'throughput-simulated.csv'))
 
-    all_files = [os.path.join(directory, i) for i in os.listdir(directory) if
-                 os.path.isfile(os.path.join(directory, i))]
-
-    utilization_file_paths = [path for path in all_files if utilization_keyword in path]
-
-    logging.info("Number of utilization paths: {}".format(len(utilization_file_paths)))
-    core_count = len(utilization_file_paths)
-
-    # Create a plot of the utilization over time
-    utilization_dfs = [single_utilization_timeseries(path) for path in utilization_file_paths]
-    utilization_timeseries = multicore_utilization_timeseries(utilization_dfs)
+    counts_simulated_physical = pd.read_csv(os.path.join(directory, 'throughput-simulated-physical-slots-from-reports.csv'))
+    counts_simulated_physical['source'] = 'simulated\n(physical cores)'
 
     # Todo Load this from a file!
     utilization_reference = 0.75
     fig, axes = visualize_utilization(utilization_timeseries, 'utilization.pdf',
-                                      reference_utilization=utilization_reference, max_val=core_count)
+                                      reference_utilization=utilization_reference, max_val=metadata['core_count'])
 
     fig.savefig(os.path.join(directory, 'utilization.pdf'))
-
-    total_utilization = average_core_utilization(utilization_file_paths)
-    logging.info("Total utilization: {}".format(total_utilization))
-
-    # Compute throughput
-    logging.info("")
-    logging.info("## Throughput")
-
-    total_throughput_paths = [path for path in all_files if overall_throughput_keyword in path]
-
-    if not total_throughput_paths:
-        sys.exit("Could not find total utilization file.")
-
-    total_throughput = count_lines(total_throughput_paths[0], headerlen=1)
-    logging.info("Total throughput (Usage Scenario): {}".format(total_throughput))
-
-    # Compute throughput for single job types
-    logging.info("")
-    logging.info("## Throughput Per Type")
-
-    job_throughput_filenames = [i for i in os.listdir(directory) if
-                                os.path.isfile(os.path.join(directory, i)) and type_throughput_keyword in i]
-
-    # Sort job types by their name
-    throughputs = job_type_throughputs(job_throughput_filenames, directory)
-    throughputs.sort(key=lambda x: x[0])
-
-    for type, throughput in throughputs:
-        logging.info("Type {}: {} ({} relative share)".format(type, throughput, throughput / total_throughput))
-
-    # Generate figure for job throughputs
-
-    # Compute time max length
-    stoptime = simulation_stop_time(utilization_file_paths[0])
-
-    # Compute number of days from the maximum time in the simulation (86400 seconds in a day)
-    simulation_days = stoptime / 86400
 
     counts_measured = read_throughput_description(os.path.join(directory, 'job_counts_reference_jm.csv'))
     counts_measured.rename(columns={'throughput_day': 'throughput'}, inplace=True)
@@ -359,10 +405,8 @@ def main():
     counts_measured = counts_measured[['type', 'throughput']]
     counts_measured['source'] = 'measured\n(CMS Dashboard)'
 
-    counts_simulated = pd.DataFrame.from_records(throughputs, columns=['type', 'count'])
-    counts_simulated['throughput'] = counts_simulated['count'].divide(simulation_days)
     counts_simulated = counts_simulated[['type', 'throughput']]
-    counts_simulated['source'] = 'simulated'
+    counts_simulated['source'] = 'simulated\n(logical cores)'
 
     counts_measured_reports = read_throughput_description(
         os.path.join(directory, 'job_counts_reference_extracted_reports.csv'))
@@ -371,7 +415,9 @@ def main():
     counts_measured_reports = counts_measured_reports[['type', 'throughput']]
     counts_measured_reports['source'] = 'measured\n(matched reports)'
 
+    # counts = pd.concat([counts_measured, counts_simulated_physical, counts_simulated, counts_measured_reports])
     counts = pd.concat([counts_measured, counts_simulated, counts_measured_reports])
+    counts = pd.concat([counts_simulated, counts_simulated_physical, counts_measured_reports])
 
     pivoted = counts.pivot(index='source', columns='type', values='throughput').fillna(0)
 
@@ -385,27 +431,28 @@ def main():
 
     walltime_reference = pd.read_csv(os.path.join(directory, walltime_reference_filename), sep=',')
 
-    walltime_filenames = [i for i in os.listdir(directory) if
-                          os.path.isfile(os.path.join(directory, i)) and external_call_keyword in i]
+    visualize_walltimes(walltimes, directory, "walltimes", bin_count=30, reference=walltime_reference)
 
-    walltimes = job_type_response_times(walltime_filenames, directory)
-    visualize_walltimes(walltimes, directory, "walltimes", bin_count=80, reference=walltime_reference)
+    physical_util = pd.read_csv('utilization-physical.csv')
+    physical_average = physical_util['utilization'].mean()
+    logical_util = pd.read_csv('utilization-simulated-logical.csv')
+    logical_average = logical_util['utilization'].mean()
 
-    # Compute passive resource utilization
-    logging.info("")
-    logging.info("## Jobslot Utilization")
+    utilizations = [('simulated (physical cores, average {:.2f}%)'.format(physical_average*100), physical_util), ('simulated (logical cores, average {:.2f}%)'.format(logical_average*100), logical_util)]
+    # utilizations = [('Simulated (physical cores)', physical_util), ('Simulated (logical cores)', logical_util)]
+    # utilizations = [('Simulated (logical cores)', logical_util)]
+    reference = [('efficiency from job reports (average 75.00%)', 0.75)]
 
-    logging.info("Stop time: {}".format(stoptime))
+    fig, axes = visualize_utilizations(utilizations, reference, utilization_col='utilization')
 
-    passive_file_paths = [path for path in all_files if passive_resource_keyword in path]
+    axes.set_title("CPU utilization (independent CPU and I/O distributions)")
 
-    logging.info("Number of passive resource paths: {}".format(len(passive_file_paths)))
+    fig.savefig('utilizations_reference_comparison.pdf')
 
-    avg_used_jobslots, total_slots = total_passive_resource_utilization(passive_file_paths, stoptime)
+    # Export job type distribution
 
-    logging.info("Average allocated jobslots: {} (of {} total jobslots)".format(avg_used_jobslots, total_slots))
-    logging.info("Average free slots: {}".format(total_slots - avg_used_jobslots))
-    logging.info("Jobslot utilization: {}".format(avg_used_jobslots / total_slots))
+    fig, axes = draw_job_type_composition(pivoted)
+    fig.savefig('job_type_composition.pdf')
 
 
 if __name__ == '__main__':
