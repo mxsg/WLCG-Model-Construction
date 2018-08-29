@@ -126,9 +126,10 @@ public class WLCGModelConstructor {
     
     private static final boolean DUPLICATE_IO = true;
     private static final boolean FAST_IO  = false;
+    private static final int IO_OVERALLOCATION = 1;
     private static final boolean JOBSLOTS_IO = true;
     
-    private static final boolean USE_IO_RATIO = false;
+    private static final boolean USE_IO_RATIO = true;
     private static final int RESOURCE_ROUNDS = 10;
 
     /**
@@ -548,6 +549,7 @@ public class WLCGModelConstructor {
             		ioRate = nodeType.getJobslots();
             	}
             }
+            ioRate *= IO_OVERALLOCATION;
             processingRateHDD.setSpecification(String.valueOf(ioRate));
 
             
