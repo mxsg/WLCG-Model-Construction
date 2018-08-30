@@ -156,7 +156,7 @@ public class WLCGModelConstructor {
         // Load monitor repositories
         MeasuringPointRepository measuringPointRepo = loadModel(modelsPath.appendSegment(MONITOR_DIRECTORY_NAME),
         		MEASURINGPOINT_REPOSITORY_FILENAME, resourceSet, MeasuringPointRepository.class);
-        
+
         MonitorRepository monitorRepo = loadModel(modelsPath.appendSegment(MONITOR_DIRECTORY_NAME),
         		MONITOR_REPOSITORY_FILENAME, resourceSet, MonitorRepository.class);
 
@@ -204,9 +204,7 @@ public class WLCGModelConstructor {
         blueprintJobResponseTimeMonitor.setMonitorRepository(null);
 
         // Complete Allocation Model
-        Resource allocationModelResource = resourceSet.getResource(modelsPath.appendSegment(ALLOCATION_MODEL_FILENAME),
-                true);
-        Allocation allocation = (Allocation) allocationModelResource.getContents().get(0);
+        Allocation allocation = loadModel(modelsPath, ALLOCATION_MODEL_FILENAME, resourceSet, Allocation.class);
 
         for (ResourceContainer nodeType : resourceContainerTypes) {
 
