@@ -17,7 +17,7 @@ public class JobTypeDescription {
     private double relativeFrequency = 0.0;
     private String ioTimeRatioStoEx = null;
     private int schedulingDelay = 0;
-    private boolean useIoRatio = true;
+    private boolean useIoRatio = false;
     private String resourceDemandRounds = "10";
 
     /**

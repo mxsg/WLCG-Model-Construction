@@ -87,18 +87,24 @@ public class NavigationPopupHandler extends AbstractHandler {
             return null;
         }
 
+        boolean modelCompletionSuccess = false;
         try {
-            BlueprintModelImport.importAndCompleteBlueprintModel(selectedProject, Config.MODEL_BLUEPRINT_URI,
+            modelCompletionSuccess = BlueprintModelImport.importAndCompleteBlueprintModel(selectedProject, Config.MODEL_BLUEPRINT_URI,
                     nodeDescriptionFile, jobDescriptionFile);
         } catch (Exception e) {
             // TODO Show more meaningful error here
             showError("Error while completing the model:\n\n" + e.toString() + "\n" + e.getMessage());
             return null;
         }
-
-        MessageDialog.openInformation(this.window.getShell(), "Model Completion Successful",
-                "All models were successfully completed.");
-        return null;
+        
+        if (modelCompletionSuccess) {
+            MessageDialog.openInformation(this.window.getShell(), "Model Completion Successful",
+                    "All models were successfully completed.");
+            return null;
+        } else {
+        	showError("An error occurred while completing the model!");
+            return null;
+        }
     }
 
     /**

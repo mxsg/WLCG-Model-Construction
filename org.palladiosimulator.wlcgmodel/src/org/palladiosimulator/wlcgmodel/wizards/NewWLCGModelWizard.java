@@ -9,7 +9,9 @@ import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -130,8 +132,16 @@ public class NewWLCGModelWizard extends Wizard implements INewWizard {
             File jobDescriptionFile = FileHelper.getFile(jobTypeDescriptionPath);
 
             // Import simulation model. This also copies it into our new project.
-            BlueprintModelImport.importAndCompleteBlueprintModel(projectHandle, Config.MODEL_BLUEPRINT_URI,
+            boolean modelConstructionSuccess = BlueprintModelImport.importAndCompleteBlueprintModel(projectHandle, Config.MODEL_BLUEPRINT_URI,
                     nodeDescriptionFile, jobDescriptionFile);
+            
+            if(!modelConstructionSuccess) {
+            	System.out.println("Something went wrong when calibrating modeling project!");
+                final IStatus status = new Status(IStatus.ERROR, "org.palladiosimulator.editors.sirius.custom.wizard",
+                        IStatus.OK, "Model import error.", null);
+                throw new CoreException(status);
+
+            }
 
             convertToModelingProject(projectHandle,
                     SubMonitor.convert(monitor, "Converting to Modeling Project", 2000));

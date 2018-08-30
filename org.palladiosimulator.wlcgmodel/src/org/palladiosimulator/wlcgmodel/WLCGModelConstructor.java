@@ -155,10 +155,10 @@ public class WLCGModelConstructor {
 
         // Load monitor repositories
         MeasuringPointRepository measuringPointRepo = loadModel(modelsPath.appendSegment(MONITOR_DIRECTORY_NAME),
-                MONITOR_REPOSITORY_FILENAME, resourceSet, MeasuringPointRepository.class);
-
+        		MEASURINGPOINT_REPOSITORY_FILENAME, resourceSet, MeasuringPointRepository.class);
+        
         MonitorRepository monitorRepo = loadModel(modelsPath.appendSegment(MONITOR_DIRECTORY_NAME),
-                MEASURINGPOINT_REPOSITORY_FILENAME, resourceSet, MonitorRepository.class);
+        		MONITOR_REPOSITORY_FILENAME, resourceSet, MonitorRepository.class);
 
         // Complete the system model
         org.palladiosimulator.pcm.system.System system = loadModel(modelsPath, SYSTEM_MODEL_FILENAME, resourceSet,

@@ -36,7 +36,7 @@ public class BlueprintModelImport {
         // Find parameter files and import data
 
         List<NodeTypeDescription> nodes = ParameterJSONImportHelper.readParameterFile(nodeDescriptionFile,
-                NodeTypeDescription.class);
+                NodeTypeDescription[].class);
 
         if (nodes == null) {
             System.out.println("Something went wrong when importing jobs types!");
@@ -44,7 +44,7 @@ public class BlueprintModelImport {
         }
 
         List<JobTypeDescription> jobs = ParameterJSONImportHelper.readParameterFile(jobDescriptionFile,
-                JobTypeDescription.class);
+                JobTypeDescription[].class);
 
         if (jobs == null) {
             System.out.println("Something went wrong when importing jobs types!");
