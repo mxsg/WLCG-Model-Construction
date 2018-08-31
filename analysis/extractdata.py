@@ -189,8 +189,8 @@ def main():
 
     directory = sys.argv[1]
     print("Output directory: {}".format(directory))
-    output_file = 'extraction_results.txt'
-    output_dir = 'results'
+    output_file = 'results.txt'
+    output_dir = '../../results'
     os.makedirs(os.path.join(directory, output_dir), exist_ok=True)
 
     # Logging setup
@@ -199,7 +199,7 @@ def main():
         # format='%(asctime)s [%(levelname)-5.5s]  %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S',
         handlers=[
-            logging.FileHandler(os.path.join(directory, output_file)),
+            logging.FileHandler(os.path.join(directory, output_dir, output_file)),
             logging.StreamHandler(stream=sys.stdout)
         ],
         level=logging.DEBUG)
@@ -307,7 +307,7 @@ def main():
 
     walltimes.to_csv(os.path.join(directory, output_dir, 'walltimes.csv'))
     utilization_timeseries.to_csv(os.path.join(directory, output_dir, 'utilization.csv'))
-    counts_simulated.to_csv(os.path.join(directory, output_dir, 'throughput-simulated.csv'))
+    counts_simulated.to_csv(os.path.join(directory, output_dir, 'throughput.csv'))
 
 
 if __name__ == '__main__':
